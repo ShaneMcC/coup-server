@@ -9,6 +9,6 @@ export default {
         var targetCoinCount = Math.min(target.coins, 2);
 
         game.emit('playerLostCoins', { player: target.id, coins: targetCoinCount });
-        game.emit('playerGainedCoins', { player: player, coins: targetCoinCount });
+        game.emit('playerGainedCoins', { player: player.id, coins: targetCoinCount });
     },
 }

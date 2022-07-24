@@ -4,6 +4,6 @@ export default {
     'anyoneCanCounter': true,
 
     process(game, player, target) {
-        game.emit('playerGainedCoins', { player: player, coins: 2 });
+        game.emit('playerGainedCoins', { player: player.id, coins: 2 });
     },
 }

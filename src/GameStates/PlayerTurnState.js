@@ -46,7 +46,7 @@ export default class PlayerTurnState extends GameState {
         } else if (Actions[action].counterActions && Actions[action].counterActions.length > 0) {
             this.game.emit('counterablePlayerAction', { 'player': this.player.id, 'action': action, 'target': target });
         } else {
-            Actions[action].process(this.game, this.player.id, target);
+            Actions[action].process(this.game, this.player, this.game.players()[target]);
             if (this.game.state == this) {
                 this.game.startNextTurn();
             }

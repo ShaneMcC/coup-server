@@ -3,7 +3,7 @@ export default {
     'canChallenge': true,
     'validCards': ['DUKE'],
 
-    process(game, player, target) {
-        game.emit('playerGainedCoins', { player: player, coins: 3 });
+    process(game, player) {
+        game.emit('playerGainedCoins', { player: player.id, coins: 3 });
     },
 }
