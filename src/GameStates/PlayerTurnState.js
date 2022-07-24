@@ -29,6 +29,10 @@ export default class PlayerTurnState extends GameState {
             if (this.game.players()[target] == undefined) {
                 return [false, `${Actions[action].name} requires a valid target.`];
             }
+
+            if (this.game.players()[target].influence.length == 0) {
+                return [false, `${Actions[action].name} requires a living target.`];
+            }
         } else {
             target = undefined;
         }
@@ -46,7 +50,10 @@ export default class PlayerTurnState extends GameState {
         } else if (Actions[action].counterActions && Actions[action].counterActions.length > 0) {
             this.game.emit('counterablePlayerAction', { 'player': this.player.id, 'action': action, 'target': target });
         } else {
+            // Action happens immediately.
             Actions[action].process(this.game, this.player, this.game.players()[target]);
+
+            // If the action doesn't change the game state, then we can move on to the next turn
             if (this.game.state == this) {
                 this.game.startNextTurn();
             }

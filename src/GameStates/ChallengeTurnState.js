@@ -55,7 +55,7 @@ export default class ChallengeTurnState extends GameState {
         if (action == "PASS") {
             this.game.emit('playerPassed', { 'player': playerid });
 
-            // TODO: Some of this tracking should be in game maybe?
+            // TODO: Some of this tracking should be in Game maybe?
             delete this.waitingFor[playerid];
 
             if (Object.entries(this.waitingFor).length == 0) {

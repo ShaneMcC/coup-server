@@ -24,10 +24,12 @@ export default class PlayerMustDiscardTurnState extends GameState {
 
             this.game.emit('discardInfluence', { 'player': this.player.id, 'influence': target });
 
+            // Once we've discarded, hand back to the previous action to continue what it was doing.
             if (this.previousState != undefined && this.previousState.processAction) {
                 this.previousState.processAction();
             }
 
+            // If the previous action hasn't changed the game state handler, then we move on.
             if (this.game.state == this) {
                 this.game.startNextTurn();
             }

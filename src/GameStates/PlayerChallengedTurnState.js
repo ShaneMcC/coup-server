@@ -25,6 +25,10 @@ export default class PlayerChallengedTurnState extends GameState {
     }
 
     processAction() {
+
+        // If we need to continue our turn, then do so.
+        // This will happen if a challenge occurs as a player needs to discard a card
+        // before we continue.
         if (this.#continueAction) {
             this.#continueAction = false;
 
@@ -49,10 +53,14 @@ export default class PlayerChallengedTurnState extends GameState {
                 this.previousState.processPreviousAction();
             }
 
+            // If we're not waiting for something else (eg a discard) then continue to the next turn
             if (this.game.state == this) {
                 this.game.startNextTurn();
             }
         } else {
+            // If we get called again then advance.
+            // TODO: This feels unclean and "happens to work" rather than being nessecarily
+            // correct maybe. Need to look into this.
             this.game.startNextTurn();
         }
     }
@@ -86,6 +94,7 @@ export default class PlayerChallengedTurnState extends GameState {
             }
 
             // Continue with the action if we don't need to wait for anything else.
+            // (ie, if we didn't end up requiring a player to discard influence.)
             if (this.game.state == this) {
                 this.processAction();
             }
