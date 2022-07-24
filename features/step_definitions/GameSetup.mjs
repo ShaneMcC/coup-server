@@ -1,6 +1,6 @@
 import { Given, When, Then } from '@cucumber/cucumber'
 import { strict as assert } from 'assert'
-import Game from '../../src/Game.js';
+import Game from '../../src/Game/Game.js';
 
 Given(/the following players are in a (game|lobby):/, function (gameType, dataTable) {
     this.game = new Game();

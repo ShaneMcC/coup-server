@@ -2,7 +2,7 @@
 
 "use strict";
 
-import Game from './src/Game.js';
+import Game from './src/Game/Game.js';
 
 var game = new Game();
 game.createGame();
