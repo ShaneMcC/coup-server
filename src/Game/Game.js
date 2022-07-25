@@ -164,7 +164,7 @@ export default class Game {
         });
 
         this.#gameEvents.on('addPlayer', event => {
-            this.#players[event.id] = {'id': event.id, 'name': event.name, 'coins': 2, 'influence': []};
+            this.#players[event.id] = {'id': event.id, 'name': event.name, 'coins': 0, 'influence': []};
             
             this.#playerIDs.push(event.id);
         });

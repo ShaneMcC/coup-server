@@ -37,10 +37,11 @@ export default class NewGameState extends GameState {
         this.game.emit('startGame');
         this.game.emit('setDeck', { 'deck': this.game.getShuffledDeck() });
 
-        // Allocate cards to players.
+        // Allocate cards and coins to players.
         for (const [playerID, _] of Object.entries(this.game.players())) {
             this.game.emit('allocateNextInfluence', { 'player': playerID });
             this.game.emit('allocateNextInfluence', { 'player': playerID });
+            this.game.emit('playerGainedCoins', { 'player': playerID, 'coins': 2 });
         };
         this.game.emit('gameReady');
         this.game.startNextTurn();
