@@ -45,6 +45,10 @@ export default class ChallengeTurnState extends GameState {
     }
 
     handlePlayerAction(playerid, action, target) {
+        if (!this.game.players()[playerid]) {
+            return [false, 'Player is not in this game.'];
+        }
+
         if (playerid == this.player.id) {
             return [false, 'Player can not challenge their own action.'];
         }

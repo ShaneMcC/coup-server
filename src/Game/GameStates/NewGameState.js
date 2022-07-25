@@ -8,6 +8,10 @@ export default class NewGameState extends GameState {
     }
 
     handlePlayerAction(playerid, action, target) {
+        if (!this.game.players()[playerid]) {
+            return [false, 'Player is not in this game.'];
+        }
+        
         if (action == 'READY') {
             this.game.emit('playerReady', { 'player': playerid });
             return [true, ''];

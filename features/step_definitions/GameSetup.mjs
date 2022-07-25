@@ -21,7 +21,7 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
 
     if (gameType == 'game') {
         // Assume game has started.
-        this.game.doPlayerAction(undefined, 'STARTGAME');
+        this.game.doPlayerAction(dataTable.hashes()[0].name, 'STARTGAME');
 
         // If we want to set influence, then do it.
         if (dataTable.hashes()[0].Influence1 != undefined || dataTable.hashes()[0].Influence2 != undefined) {
