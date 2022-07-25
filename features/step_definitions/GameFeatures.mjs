@@ -51,14 +51,14 @@ When('{word} passes', function (player) {
     this.game.doPlayerAction(player, 'PASS');
 });
 
-Then('{word} has {word} coins remaining', function (player, coins) {
+Then('{word} has {int} coins remaining', function (player, coins) {
     assert(this.game.players()[player].coins == coins)
 });
 
-Then('{word} has at least {word} coins remaining', function (player, coins) {
+Then('{word} has at least {int} coins remaining', function (player, coins) {
     assert(this.game.players()[player].coins >= coins)
 });
 
-Then('{word} has {word} influence remaining', function (player, coins) {
+Then('{word} has {int} influence remaining', function (player, coins) {
     assert(this.game.players()[player].influence.length == coins)
 });
