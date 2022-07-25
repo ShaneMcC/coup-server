@@ -4,6 +4,8 @@ export default class CollectableEventBus extends EventEmitter {
     #events;
     #game;
 
+    #clientEventBus = new EventEmitter();
+
     constructor(game) {
         super();
         this.#game = game;
@@ -17,10 +19,16 @@ export default class CollectableEventBus extends EventEmitter {
             eventBits['date'] = new Date();
         }
 
+        if (!eventBits['game']) {
+            eventBits['game'] = this.#game.gameID();
+        }
+
         this.#events.push(JSON.parse(JSON.stringify({'__type': event, ...eventBits})));
         this.#game.log(`EVENT: ${event} -> ${JSON.stringify(eventBits)}`);
         
         super.emit(event, eventBits);
+
+        this.#clientEventBus.emit('handleEvent', JSON.parse(JSON.stringify({'__type': event, ...eventBits})));
     }
 
     collect() {
@@ -29,5 +37,9 @@ export default class CollectableEventBus extends EventEmitter {
 
     clear() {
         this.#events = [];
+    }
+
+    addClientHandler(handler) {
+        this.#clientEventBus.on('handleEvent', handler);
     }
 }

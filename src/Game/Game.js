@@ -35,7 +35,7 @@ export default class Game {
     }
 
     createGame() {
-        this.emit('gameCreated', {id: Crypto.randomUUID()});
+        this.emit('gameCreated', {game: Crypto.randomUUID()});
     }
 
     gameID() {
@@ -54,6 +54,10 @@ export default class Game {
         this.#gameEvents.emit(event, ...args);
     }
 
+    listen(handler) {
+        this.#gameEvents.addClientHandler(handler);
+    }
+
     addPlayer(name) {
         if (this.started) { return undefined; }
 
@@ -62,6 +66,12 @@ export default class Game {
         this.emit('addPlayer', {'id': playerID, 'name': name});
 
         return playerID;
+    }
+
+    removePlayer(playerID, reason) {
+        if (this.started) { return false; }
+
+        this.emit('removePlayer', {'id': playerID, 'reason': reason});
     }
 
     doPlayerAction(playerid, action, target) {
@@ -145,13 +155,18 @@ export default class Game {
 
     addHandlers() {
         this.#gameEvents.on('gameCreated', event => {
-            this.#gameID = event.id;
+            this.#gameID = event.game;
         });
 
         this.#gameEvents.on('addPlayer', event => {
             this.#players[event.id] = {'id': event.id, 'name': event.name, 'coins': 2, 'influence': []};
             
             this.#playerIDs.push(event.id);
+        });
+
+        this.#gameEvents.on('removePlayer', event => {
+            delete this.#players[event.id];
+            this.#playerIDs.splice(this.#playerIDs.indexOf(event.id), 1);
         });
 
         this.#gameEvents.on('setPlayerName', event => {
