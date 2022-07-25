@@ -10,8 +10,8 @@ Feature: Can a player claim Steal correctly?
   Scenario: Alice wants to Steal from Bob unchallenged.
     When Alice wants to claim STEAL on Bob
     Then the GameEvents contain the following:
-      | __type                    | player | action |
-      | challengeablePlayerAction | Alice  | STEAL  |
+      | __type                  | player | action |
+      | counterablePlayerAction | Alice  | STEAL  |
     When all players pass
     Then the GameEvents contain the following:
       | __type            | player | coins |

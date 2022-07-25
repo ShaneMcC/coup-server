@@ -49,10 +49,10 @@ export default class PlayerTurnState extends GameState {
             return [false, `${Actions[action].name} is not valid with more than 10 coins.`];
         }
 
-        if (Actions[action].canChallenge) {
-            this.game.emit('challengeablePlayerAction', { 'player': this.player.id, 'action': action, 'target': target });
-        } else if (Actions[action].counterActions && Actions[action].counterActions.length > 0) {
+        if (Actions[action].counterActions && Actions[action].counterActions.length > 0) {
             this.game.emit('counterablePlayerAction', { 'player': this.player.id, 'action': action, 'target': target });
+        } else if (Actions[action].canChallenge) {
+            this.game.emit('challengeablePlayerAction', { 'player': this.player.id, 'action': action, 'target': target });
         } else {
             // Action happens immediately.
             Actions[action].process(this.game, this.player, this.game.players()[target]);
