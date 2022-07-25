@@ -114,6 +114,7 @@ export default class ClientSocketHandler {
 
     handleGameEvent(event) {
         var thisGame = this.#myGames[event.game];
+        var thisGamePlayers = this.#server.getGame(event.game)?.players();
 
         // Hide Deck from players, and keep track of it ourself to deal with allocateNextInfluence
         if (event.__type == 'setDeck') {
@@ -146,14 +147,37 @@ export default class ClientSocketHandler {
 
         // After some events, we help the game client along with showing it actions it has available to it.
         // This way the client is light on logic.
-        if (event.__type == 'startGame') {
+
+        if (event.__type == 'addPlayer' || event.__type == 'removePlayer' || event.__type == 'playerReady' || event.__type == 'playerNotReady') {
+            var pregameActions = {};
+
+            if (thisGamePlayers[thisGame.playerID]) {
+                if (thisGamePlayers[thisGame.playerID].ready) {
+                    pregameActions['UNREADY'] = { name: "Not Ready" };
+                } else {
+                    pregameActions['READY'] = { name: "Ready" };
+                }
+
+                pregameActions['SETNAME'] = { name: 'Change Name', prompt: 'Enter new name' };
+
+                if (Object.values(thisGamePlayers).filter(p => !p.ready).length > 0) {
+                    pregameActions['STARTGAME'] = { name: "Start Game" };
+                }
+            }
+
+            this.showActions(event.game, pregameActions);
+        }
+
+        if (event.__type == 'startGame' || event.__type == 'gameOver') {
             this.showActions(event.game, {});
         }
 
-        if (event.__type == 'beginPlayerTurn' && event.player == thisGame.playerID) {
-            this.showActions(event.game, PlayerTurnActions);
-        } else {
-            this.showActions(event.game, {});
+        if (event.__type == 'beginPlayerTurn') {
+            if (event.player == thisGame.playerID) {
+                this.showActions(event.game, PlayerTurnActions);
+            } else {
+                this.showActions(event.game, {});
+            }
         }
 
         if (event.__type == 'challengeablePlayerAction' || event.__type == 'counterablePlayerAction') {
@@ -182,7 +206,7 @@ export default class ClientSocketHandler {
 
         if (event.__type == 'playerChallenged') {
             if (event.player == thisGame.playerID) {
-                this.showActions(event.game, { 'REVEAL': { name: 'Reveal Influence', options: this.#server.getGame(event.game).players()[event.player].influence } });
+                this.showActions(event.game, { 'REVEAL': { name: 'Reveal Influence', options: thisGamePlayers[event.player].influence } });
             } else {
                 this.showActions(event.game, {});
             }
@@ -192,7 +216,7 @@ export default class ClientSocketHandler {
             if (event.challenger == thisGame.playerID) {
                 this.showActions(event.game, {});
             } else {
-                var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };                
+                var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };
                 this.showActions(event.game, displayActions);
             }
         }
@@ -206,11 +230,11 @@ export default class ClientSocketHandler {
         }
 
         if (event.__type == 'playerMustDiscardInfluence' && event.player == thisGame.playerID) {
-            this.showActions(event.game, { 'REVEAL': { name: 'Discard Influence', oneTime: true, options: this.#server.getGame(event.game).players()[event.player].influence } });
+            this.showActions(event.game, { 'REVEAL': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[event.player].influence } });
         }
 
         if (event.__type == 'playerExchangingCards' && event.player == thisGame.playerID) {
-            this.showActions(event.game, { 'EXCHANGE': { name: 'Discard Influence', oneTime: true, options: this.#server.getGame(event.game).players()[event.player].influence } });
+            this.showActions(event.game, { 'EXCHANGE': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[event.player].influence } });
         }
     }
 }
