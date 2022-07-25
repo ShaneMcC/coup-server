@@ -34,8 +34,9 @@ export default class Game {
         if (this.debug) { console.log(...args); }
     }
 
-    createGame() {
-        this.emit('gameCreated', {game: Crypto.randomUUID()});
+    createGame(gameid) {
+        if (gameid == undefined) { gameid = Crypto.randomUUID(); }
+        this.emit('gameCreated', {game: gameid});
     }
 
     gameID() {
