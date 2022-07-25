@@ -5,7 +5,8 @@
   "description": "Coup Game Server",
   "main": "index.js",
   "scripts": {
-    "test": "cucumber-js"
+    "test": "cucumber-js",
+    "serve": "node index.js"
   },
   "author": "Shane Mc Cormack",
   "license": "MIT",
