@@ -6,6 +6,7 @@ import { Server as IOServer } from "socket.io";
 import ClientSocketHandler from "./ClientSocketHandler.js";
 
 export default class GameServer {
+    #listenPort;
 
     #app;
     #server;
@@ -14,16 +15,14 @@ export default class GameServer {
     #games = {};
     #sockets = {};
 
-    constructor() {
+    constructor(listenPort) {
+        this.#listenPort = listenPort;
+
         this.#app = new Express();
         this.#app.use(new cors());
 
         this.#server = http.createServer(this.#app);
-        this.#io = new IOServer(this.#server, {
-            cors: {
-                origin: '*',
-            }
-        });
+        this.#io = new IOServer(this.#server, { cors: { origin: '*' }});
 
         this.#io.of('/gameServer').on("connection", (socket) => {
             this.#sockets[socket.id] = new ClientSocketHandler(this, socket);
@@ -31,8 +30,6 @@ export default class GameServer {
 
         // TODO: Games need to age out somehow
         // TODO: Games need to persist to disk somewhow
-
-        this.createTestGame();
     }
 
     createGame(gameid) {
@@ -54,27 +51,9 @@ export default class GameServer {
     }
 
     run() {
-        this.#server.listen(3000, () => {
-            console.log('Server is listening');
+        this.#server.listen(this.#listenPort, () => {
+            console.log(`Server is listening on :${this.#listenPort}`);
         });
-    }
-
-    createTestGame() {
-        var testGame = this.createGame('TestGame');
-
-        testGame.emit('addPlayer', { 'id': 'Alice', 'name': 'Alice' });
-        testGame.emit('addPlayer', { 'id': 'Bob', 'name': 'Bob' });
-        testGame.emit('addPlayer', { 'id': 'Charlie', 'name': 'Charlie' });
-
-        testGame.doPlayerAction('Alice', 'READY');
-        testGame.doPlayerAction('Bob', 'READY');
-        testGame.doPlayerAction('Charlie', 'READY');
-
-        testGame.doPlayerAction('Alice', 'STARTGAME');
-
-        testGame.doPlayerAction('Alice', 'INCOME');
-        testGame.doPlayerAction('Bob', 'INCOME');
-        testGame.doPlayerAction('Charlie', 'INCOME');
     }
 }
 

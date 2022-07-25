@@ -195,7 +195,7 @@ export default class Game {
             this.#gameDeck = event.deck;
         });
 
-        // TODO: I don't like this event.
+        // TODO: I don't like this event
         this.#gameEvents.on('allocateNextInfluence', event => {
             this.#players[event.player].influence.push(this.#gameDeck.shift());
         });
