@@ -26,7 +26,7 @@ export default class PlayerExchangingCardsTurnState extends GameState {
                 return [false, 'Player can not exchange influence they do not have.'];
             }
 
-            this.game.emit('discardInfluence', { 'player': this.player.id, 'influence': target, 'deck': true });
+            this.game.emit('returnInfluenceToDeck', { 'player': this.player.id, 'influence': target });
             this.#count++;
 
             if (this.#count == 2) {

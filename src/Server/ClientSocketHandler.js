@@ -138,7 +138,7 @@ export default class ClientSocketHandler {
         }
 
         // Hide re-decked influences.
-        if (event.__type == 'discardInfluence' && event.player != thisGame.playerID && event.deck) {
+        if (event.__type == 'returnInfluenceToDeck' && event.player != thisGame.playerID) {
             event.influence = 'UNKNOWN';
         }
 

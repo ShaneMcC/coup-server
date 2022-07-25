@@ -217,10 +217,16 @@ export default class Game {
             }
 
             this.#players[event.player].influence.splice(influenceLocation, 1);
+        });
 
-            if (event.deck) {
-                this.#gameDeck.push(event.influence);
+        this.#gameEvents.on('returnInfluenceToDeck', event => {
+            var influenceLocation = this.#players[event.player].influence.indexOf(event.influence);
+            if (influenceLocation == -1) {
+                throw new Error(`Unable to return ${event.influence} to desk.`);
             }
+
+            this.#players[event.player].influence.splice(influenceLocation, 1);
+            this.#gameDeck.push(event.influence);
         });
 
         this.#gameEvents.on('gameReady', event => {
