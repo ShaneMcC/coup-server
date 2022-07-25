@@ -18,11 +18,12 @@ export default class ChallengeTurnState extends GameState {
         this.previousState = previousState;
 
         this.waitingFor = {};
-        for (const [playerID, _] of Object.entries(this.game.players())) {
-            this.waitingFor[playerID] = true;
+        for (const [playerID, p] of Object.entries(this.game.players())) {
+            // Only allow players who are alive and not the active player to challenge/pass
+            if (p.influence.length > 0 && playerID != this.player.id) {
+                this.waitingFor[playerID] = true;
+            }
         }
-
-        delete this.waitingFor[this.player.id];
 
         game.log('STATE: Challenge Turn ', [player, action, target]);
     }
