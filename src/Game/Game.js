@@ -58,6 +58,10 @@ export default class Game {
         this.#gameEvents.addClientHandler(handler);
     }
 
+    unlisten(handler) {
+        this.#gameEvents.removeClientHandler(handler);
+    }
+
     addPlayer(name) {
         if (this.started) { return undefined; }
 
