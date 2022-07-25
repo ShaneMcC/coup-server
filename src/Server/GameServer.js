@@ -3,7 +3,7 @@ import http from "http";
 import cors from "cors";
 import Game from "../Game/Game.js";
 import { Server as IOServer } from "socket.io";
-
+import ClientSocketHandler from "./ClientSocketHandler.js";
 
 export default class GameServer {
 
@@ -21,24 +21,24 @@ export default class GameServer {
         this.#server = http.createServer(this.#app);
         this.#io = new IOServer(this.#server, {
             cors: {
-              origin: '*',
+                origin: '*',
             }
-          });
-        
-        this.#io.of('/gameServer').on("connection", (socket) => {
-            console.log(`New client: ${socket.id}`);
+        });
 
-            this.#sockets[socket.id] = new SocketHandler(this, socket);
+        this.#io.of('/gameServer').on("connection", (socket) => {
+            this.#sockets[socket.id] = new ClientSocketHandler(this, socket);
         });
 
         // TODO: Games need to age out somehow
         // TODO: Games need to persist to disk somewhow
+
+        this.createTestGame();
     }
 
-    createGame() {
+    createGame(gameid) {
         var game = new Game();
         game.debug = true;
-        game.createGame();
+        game.createGame(gameid);
 
         this.#games[game.gameID()] = game;
 
@@ -58,107 +58,24 @@ export default class GameServer {
             console.log('Server is listening');
         });
     }
-}
 
-export class SocketHandler {
-    #socket;
-    #server;
-    #myGames = {};
-    #listener = (e) => { this.handleGameEvent(e); }
+    createTestGame() {
+        var testGame = this.createGame('TestGame');
 
-    constructor(server, socket) {
-        this.#server = server;
-        this.#socket = socket;
-        this.#socket.emit('clientConnected', {socketID: socket.id });
+        testGame.emit('addPlayer', { 'id': 'Alice', 'name': 'Alice' });
+        testGame.emit('addPlayer', { 'id': 'Bob', 'name': 'Bob' });
+        testGame.emit('addPlayer', { 'id': 'Charlie', 'name': 'Charlie' });
 
-        this.addHandlers();
-    }
+        testGame.doPlayerAction('Alice', 'READY');
+        testGame.doPlayerAction('Bob', 'READY');
+        testGame.doPlayerAction('Charlie', 'READY');
 
-    loadGame(game) {
-        for (const event of game.collectEvents()) {
-            this.handleGameEvent(event);
-        }
-        this.#socket.emit('gameLoaded', {gameID: game.gameID() });
-        game.listen(this.#listener);
-    }
+        testGame.doPlayerAction('Alice', 'STARTGAME');
 
-    addHandlers() {
-        this.#socket.on('createGame', (playerName) => {
-            var game = this.#server.createGame();
-
-            this.#socket.emit('gameCreated', { game: game.gameID() });
-        });
-
-        this.#socket.on('joinGame', (id, playerName) => {
-            var game = this.#server.getGame(id);
-
-            if (game != undefined) {
-                var playerID = game.addPlayer(playerName);
-                this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
-                this.#myGames[id] = {'playerID': playerID};
-
-                this.loadGame(game);
-            } else {
-                this.#socket.emit('commandError', {error: 'Invalid game.'});
-            }
-        });
-
-        // TODO: There is no security here, anyone could rejoin as anyone else.
-        this.#socket.on('rejoinGame', (id, playerID) => {
-            var game = this.#server.getGame(id);
-
-            if (game != undefined && game.players()[playerID]) {
-                this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
-                this.#myGames[id] = {'playerID': playerID};
-                
-                this.loadGame(game);
-            } else {
-                this.#socket.emit('commandError', {error: 'Unable to rejoin game.'});
-            }
-        });
-
-        this.#socket.on('action', (gameid, action, target) => {
-            var game = this.#server.getGame(gameid);
-
-            if (game != undefined && this.#myGames[gameid].playerID != undefined) {
-                try {
-                    game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
-                } catch (e) {
-                    this.#socket.emit('actionError', {error: e});
-                }
-            }
-        });
-
-        this.#socket.on('disconnect', () => {
-            for (const [gameid, info] of Object.entries(this.#myGames)) {
-                var game = this.#server.getGame(gameid);
-
-                if (game != undefined && info.playerID) {
-                    game.removePlayer(info.playerID, 'Socket Disconnected');
-                    game.unlisten(this.#listener);
-                }
-            }
-
-            this.#server.removeSocket(this.#socket.id);
-        });
-
-        // TODO: There is no security here, anyone could run any action as any player.
-        this.#socket.on('adminAction', (gameid, playerid, action, target) => {
-            var game = this.#server.getGame(gameid);
-
-            if (game != undefined) {
-                try {
-                    game.doPlayerAction(playerid, action, target);
-                } catch (e) {
-                    this.#socket.emit('adminActionError', {error: e});
-                }
-            }
-        });
-    }
-
-    handleGameEvent(event) {
-        // TODO: We need to filter some of these to not give away everything.
-        // but for now, this will let us simulate some games with some clients!
-        this.#socket.emit('handleGameEvent', event);
+        testGame.doPlayerAction('Alice', 'INCOME');
+        testGame.doPlayerAction('Bob', 'INCOME');
+        testGame.doPlayerAction('Charlie', 'INCOME');
     }
 }
+
+
