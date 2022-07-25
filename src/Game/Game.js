@@ -210,22 +210,19 @@ export default class Game {
             this.#gameDeck.splice(influenceLocation, 1);
         });
 
-        this.#gameEvents.on('discardInfluence', event => {
+        const discardInfluenceHandler = event => {
             var influenceLocation = this.#players[event.player].influence.indexOf(event.influence);
             if (influenceLocation == -1) {
                 throw new Error(`Unable to discard ${event.influence}.`);
             }
 
             this.#players[event.player].influence.splice(influenceLocation, 1);
-        });
+        };
+
+        this.#gameEvents.on('discardInfluence', discardInfluenceHandler);
 
         this.#gameEvents.on('returnInfluenceToDeck', event => {
-            var influenceLocation = this.#players[event.player].influence.indexOf(event.influence);
-            if (influenceLocation == -1) {
-                throw new Error(`Unable to return ${event.influence} to desk.`);
-            }
-
-            this.#players[event.player].influence.splice(influenceLocation, 1);
+            discardInfluenceHandler(event);
             this.#gameDeck.push(event.influence);
         });
 
