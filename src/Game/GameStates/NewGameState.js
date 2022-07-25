@@ -27,6 +27,11 @@ export default class NewGameState extends GameState {
             return [true, ''];
         }
 
+        if (action == 'KICK') {
+            this.game.emit('removePlayer', { 'id': target, 'reason': `Player Kicked.`, kickedBy: playerid });
+            return [true, ''];
+        }
+
         if (action != 'STARTGAME') {
             return [false, 'Game is not yet started.'];
         }

@@ -76,17 +76,17 @@ export default class ChallengeTurnState extends GameState {
         }
 
         if (action == "CHALLENGE" && Actions[this.action] && Actions[this.action].canChallenge) {
-            this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target, 'challenger': playerid });
+            this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid });
             return [true, ''];
         }
 
         if (action == "CHALLENGE" && CounterActions[this.action]) {
-            this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target, 'challenger': playerid });
+            this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid });
             return [true, ''];
         }
 
         if (action == "COUNTER" && Actions[this.action] && ((this.target && this.target.id == playerid) || Actions[this.action].anyoneCanCounter) && Actions[this.action].counterActions && Actions[this.action].counterActions.indexOf(target) > -1) {
-            this.game.emit('playerCountered', { 'player': this.player.id, 'action': this.action, 'target': this.target, 'challenger': playerid, 'counter': target });
+            this.game.emit('playerCountered', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid, 'counter': target });
             return [true, ''];
         }
 
