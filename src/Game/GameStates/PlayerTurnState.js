@@ -33,6 +33,10 @@ export default class PlayerTurnState extends GameState {
             if (this.game.players()[target].influence.length == 0) {
                 return [false, `${Actions[action].name} requires a living target.`];
             }
+
+            if (target == this.player.id) {
+                return [false, `${Actions[action].name} can not self-target.`];
+            }
         } else {
             target = undefined;
         }

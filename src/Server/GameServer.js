@@ -1,5 +1,6 @@
 import Express from "express";
 import http from "http";
+import cors from "cors";
 import Game from "../Game/Game.js";
 import { Server as IOServer } from "socket.io";
 
@@ -15,8 +16,14 @@ export default class GameServer {
 
     constructor() {
         this.#app = new Express();
+        this.#app.use(new cors());
+
         this.#server = http.createServer(this.#app);
-        this.#io = new IOServer(this.#server);
+        this.#io = new IOServer(this.#server, {
+            cors: {
+              origin: '*',
+            }
+          });
         
         this.#io.of('/gameServer').on("connection", (socket) => {
             console.log(`New client: ${socket.id}`);
@@ -91,6 +98,8 @@ export class SocketHandler {
                 this.#myGames[id] = {'playerID': playerID};
 
                 this.loadGame(game);
+            } else {
+                this.#socket.emit('commandError', {error: 'Invalid game.'});
             }
         });
 
@@ -103,6 +112,8 @@ export class SocketHandler {
                 this.#myGames[id] = {'playerID': playerID};
                 
                 this.loadGame(game);
+            } else {
+                this.#socket.emit('commandError', {error: 'Unable to rejoin game.'});
             }
         });
 
@@ -110,7 +121,11 @@ export class SocketHandler {
             var game = this.#server.getGame(gameid);
 
             if (game != undefined && this.#myGames[gameid].playerID != undefined) {
-                game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
+                try {
+                    game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
+                } catch (e) {
+                    this.#socket.emit('actionError', {error: e});
+                }
             }
         });
 
@@ -132,7 +147,11 @@ export class SocketHandler {
             var game = this.#server.getGame(gameid);
 
             if (game != undefined) {
-                game.doPlayerAction(playerid, action, target);
+                try {
+                    game.doPlayerAction(playerid, action, target);
+                } catch (e) {
+                    this.#socket.emit('adminActionError', {error: e});
+                }
             }
         });
     }
