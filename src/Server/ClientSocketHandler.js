@@ -67,7 +67,7 @@ export default class ClientSocketHandler {
                 try {
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
                 } catch (e) {
-                    this.#socket.emit('actionError', { error: e });
+                    this.#socket.emit('actionError', { error: e.message });
                 }
             }
         });
@@ -94,7 +94,7 @@ export default class ClientSocketHandler {
                 try {
                     game.doPlayerAction(playerid, action, target);
                 } catch (e) {
-                    this.#socket.emit('adminActionError', { error: e });
+                    this.#socket.emit('adminActionError', { error: e.message });
                 }
             }
         });
@@ -160,7 +160,7 @@ export default class ClientSocketHandler {
 
                 pregameActions['SETNAME'] = { name: 'Change Name', prompt: 'Enter new name' };
 
-                if (Object.values(thisGamePlayers).filter(p => !p.ready).length > 0) {
+                if (Object.values(thisGamePlayers).filter(p => !p.ready).length == 0) {
                     pregameActions['STARTGAME'] = { name: "Start Game" };
                 }
             }
