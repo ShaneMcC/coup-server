@@ -1,6 +1,6 @@
 Feature: Can a player claim Tax correctly?
 
-  Background: 
+  Background:
     Given the following players are in a game:
       | name    | Influence1 | Influence2 |
       | Alice   | Assassin   | Ambassador |
@@ -15,7 +15,7 @@ Feature: Can a player claim Tax correctly?
     When all players pass
     Then the GameEvents contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Alice  |     3 |
+      | playerGainedCoins | Alice  | 3     |
     And Alice has 5 coins remaining
     And Bob is the current player
 
@@ -30,7 +30,7 @@ Feature: Can a player claim Tax correctly?
     Then Charlie reveals CAPTAIN
     And the GameEvents contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Bob    |     3 |
+      | playerGainedCoins | Bob    | 3     |
     And Bob has 5 coins remaining
     And Charlie has 1 influence remaining
     And Bob has 2 influence remaining
@@ -45,7 +45,7 @@ Feature: Can a player claim Tax correctly?
       | playerFailedChallenge | Alice  |
     And the GameEvents do not contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Alice  |     3 |
+      | playerGainedCoins | Alice  | 3     |
     And Alice has 2 coins remaining
     And Alice has 1 influence remaining
     And Charlie has 2 influence remaining

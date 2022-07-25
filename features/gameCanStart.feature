@@ -1,7 +1,7 @@
 Feature: Can a game start?
   Games should be startable.
 
-  Background: 
+  Background:
     Given the following players are in a lobby:
       | name    |
       | Alice   |

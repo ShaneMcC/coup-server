@@ -1,6 +1,6 @@
 Feature: Can a player claim Steal correctly?
 
-  Background: 
+  Background:
     Given the following players are in a game:
       | name    | Influence1 | Influence2 |
       | Alice   | Assassin   | Ambassador |
@@ -15,8 +15,8 @@ Feature: Can a player claim Steal correctly?
     When all players pass
     Then the GameEvents contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Alice  |     2 |
-      | playerLostCoins   | Bob    |     2 |
+      | playerGainedCoins | Alice  | 2     |
+      | playerLostCoins   | Bob    | 2     |
     And Alice has 4 coins remaining
     And Bob has 0 coins remaining
     And Bob is the current player

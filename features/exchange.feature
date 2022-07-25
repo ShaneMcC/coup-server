@@ -1,11 +1,11 @@
 Feature: Can a player exchange with the deck?
 
-  Background: 
+  Background:
     Given the following players are in a game:
       | name    | Influence1 | Influence2 | coins |
-      | Alice   | Assassin   | Ambassador |     5 |
-      | Bob     | Duke       | Duke       |     5 |
-      | Charlie | Captain    | Contessa   |     5 |
+      | Alice   | Assassin   | Ambassador | 5     |
+      | Bob     | Duke       | Duke       | 5     |
+      | Charlie | Captain    | Contessa   | 5     |
 
   Scenario: Alice wants to exchange and is challenged but exposes her assassin.
     When Alice wants to claim EXCHANGE
@@ -37,4 +37,4 @@ Feature: Can a player exchange with the deck?
     And Alice wants to exchange card 0
     And Alice wants to exchange card 0
     Then Bob is the current player
-     And Alice has 1 influence remaining
+    And Alice has 1 influence remaining

@@ -1,6 +1,6 @@
 Feature: Can a player claim Foreign Aid correctly?
 
-  Background: 
+  Background:
     Given the following players are in a game:
       | name    | Influence1 | Influence2 |
       | Alice   | Assassin   | Ambassador |
@@ -15,7 +15,7 @@ Feature: Can a player claim Foreign Aid correctly?
     When all players pass
     Then the GameEvents contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Alice  |     2 |
+      | playerGainedCoins | Alice  | 2     |
     And Alice has 4 coins remaining
 
   Scenario: Bob counters Alices Foreign Aid uncontested.
@@ -24,7 +24,7 @@ Feature: Can a player claim Foreign Aid correctly?
     When all players pass
     Then the GameEvents do not contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Alice  |     2 |
+      | playerGainedCoins | Alice  | 2     |
     And Alice has 2 coins remaining
 
   Scenario: Charlie gets challenged countering Alices Foreign Aid.
@@ -37,7 +37,7 @@ Feature: Can a player claim Foreign Aid correctly?
       | playerFailedChallenge | Charlie |
     And the GameEvents contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Alice  |     2 |
+      | playerGainedCoins | Alice  | 2     |
     And Alice has 4 coins remaining
     And Charlie has 1 influence remaining
     And Alice has 2 influence remaining
@@ -52,7 +52,7 @@ Feature: Can a player claim Foreign Aid correctly?
       | playerPassedChallenge | Bob    |
     And the GameEvents do not contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Alice  |     2 |
+      | playerGainedCoins | Alice  | 2     |
     And Alice has 2 coins remaining
     Then Alice reveals Assassin
     And Alice has 1 influence remaining

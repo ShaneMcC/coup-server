@@ -1,17 +1,17 @@
 Feature: Can a player coup another player
 
-  Background: 
+  Background:
     Given the following players are in a game:
       | name    | Influence1 | Influence2 | coins |
-      | Alice   | Assassin   | Ambassador |     8 |
-      | Bob     | Duke       | Duke       |    10 |
-      | Charlie | Captain    | None       |    10 |
+      | Alice   | Assassin   | Ambassador | 8     |
+      | Bob     | Duke       | Duke       | 10    |
+      | Charlie | Captain    | None       | 10    |
 
   Scenario: Alice can coup but chooses not to.
     When Alice wants to claim INCOME
     Then the GameEvents contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Alice  |     1 |
+      | playerGainedCoins | Alice  | 1     |
     And Alice has 9 coins remaining
     Then Bob is the current player
 
@@ -20,7 +20,7 @@ Feature: Can a player coup another player
     When Bob wants to try to claim INCOME
     Then the GameEvents do not contain the following:
       | __type            | player | coins |
-      | playerGainedCoins | Bob    |     1 |
+      | playerGainedCoins | Bob    | 1     |
 
   Scenario: Bob can successfully coup Alice
     Given it is Bobs turn
