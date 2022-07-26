@@ -66,7 +66,10 @@ export default class Game {
     addPlayer(name) {
         if (this.started) { return undefined; }
 
-        var playerID = Crypto.randomUUID();
+        var playerID;
+        do {
+            playerID = Crypto.randomUUID();
+        } while (this.#players[playerID]);
 
         this.emit('addPlayer', {'id': playerID, 'name': name});
 
