@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Coup Game Server",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "cucumber-js",
-    "start": "node index.js",
-    "dev": "TESTGAMES=true node index.js"
+    "start": "node server.js",
+    "dev": "TESTGAMES=true node server.js"
   },
   "author": "Shane Mc Cormack",
   "license": "MIT",

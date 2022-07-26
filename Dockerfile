@@ -4,7 +4,7 @@ COPY ./package.json ./package-lock.json /app/
 RUN npm install
 
 FROM install AS run
-COPY index.js /app/
+COPY server.js /app/
 COPY src /app/src
 
 # Explicitly add Tini rather than relying on --init
