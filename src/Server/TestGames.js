@@ -1,24 +1,29 @@
+import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
+
 export default class TestGames {
     constructor(gs) {
-        this.#createTestGame(gs, 'TestGame');
+        this.#createTestGame(gs, 'TestGame', ['Alice', 'Bob', 'Charlie']);
+
+        const nameConfig = { dictionaries: [[...adjectiveList, ...colourList], animalList], length: 2, separator: '', style: 'capital' };
+        const player1 = uniqueNamesGenerator(nameConfig);
+        const player2 = uniqueNamesGenerator(nameConfig);
+        const player3 = uniqueNamesGenerator(nameConfig);
+        this.#createTestGame(gs, undefined, [player1, player2, player3]);
     }
 
-    #createTestGame(gs, gameID) {
-        console.log(`Creating test game: ${gameID}`);
+    #createTestGame(gs, gameID, players) {
         var testGame = gs.createGame(gameID);
+        console.log(`Creating test game: ${testGame.gameID()}`);
 
-        testGame.emit('addPlayer', { 'id': 'Alice', 'name': 'Alice' });
-        testGame.emit('addPlayer', { 'id': 'Bob', 'name': 'Bob' });
-        testGame.emit('addPlayer', { 'id': 'Charlie', 'name': 'Charlie' });
+        for (const player of players) {
+            testGame.emit('addPlayer', { 'id': player, 'name': player });
+            testGame.doPlayerAction(player, 'READY');
+        }
 
-        testGame.doPlayerAction('Alice', 'READY');
-        testGame.doPlayerAction('Bob', 'READY');
-        testGame.doPlayerAction('Charlie', 'READY');
+        testGame.doPlayerAction(players[0], 'STARTGAME');
 
-        testGame.doPlayerAction('Alice', 'STARTGAME');
-
-        testGame.doPlayerAction('Alice', 'INCOME');
-        testGame.doPlayerAction('Bob', 'INCOME');
-        testGame.doPlayerAction('Charlie', 'INCOME');
+        for (const player of players) {
+            testGame.doPlayerAction(player, 'INCOME');
+        }
     }
 }

@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "cucumber-js",
-    "serve": "node index.js"
+    "start": "node index.js",
+    "dev": "TESTGAMES=true node index.js"
   },
   "author": "Shane Mc Cormack",
   "license": "MIT",

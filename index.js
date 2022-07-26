@@ -7,6 +7,7 @@ var listenPort = parseInt(process.env.PORT);
 if (!listenPort) { listenPort = 3000; }
 
 import GameServer from './src/Server/GameServer.js';
+import TestGames from './src/Server/TestGames.js';
 
 var gs = new GameServer(listenPort);
 
