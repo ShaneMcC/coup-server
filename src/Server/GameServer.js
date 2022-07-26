@@ -5,6 +5,8 @@ import Game from "../Game/Game.js";
 import { Server as IOServer } from "socket.io";
 import ClientSocketHandler from "./ClientSocketHandler.js";
 
+import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
+
 export default class GameServer {
     #listenPort;
 
@@ -35,6 +37,17 @@ export default class GameServer {
     createGame(gameid) {
         var game = new Game();
         game.debug = true;
+
+        if (gameid == undefined) {
+            do {
+                gameid = uniqueNamesGenerator({ dictionaries: [adjectiveList, colourList, animalList], length: 3, separator: '-', style: 'lowercase' });
+            } while (this.#games[game.gameID()]);
+        } else {
+            if (this.#games[game.gameID()]) {
+                throw new Error('game id already exists');
+            }
+        }
+
         game.createGame(gameid);
 
         this.#games[game.gameID()] = game;
