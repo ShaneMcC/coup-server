@@ -10,6 +10,7 @@ export default class CollectableEventBus extends EventEmitter {
         super();
         this.#game = game;
         this.#events = [];
+        this.#clientEventBus.setMaxListeners(0);
     }
 
     emit(event, eventBits) {
