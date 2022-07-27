@@ -1,14 +1,13 @@
 import { Actions as PlayerTurnActions, CounterActions } from "../Game/Actions.js";
 
-export default class ClientSocketHandler {
+export default class AdminSocketHandler {
     #socket;
     #server;
-
-    #listener = (e) => { this.handleGameEvent(JSON.parse(JSON.stringify(e))); };
 
     constructor(server, socket) {
         this.#server = server;
         this.#socket = socket;
+
         console.log(`New admin client: ${socket.id}`);
         this.#socket.emit('clientConnected', { socketID: socket.id });
 
@@ -20,10 +19,28 @@ export default class ClientSocketHandler {
         this.#socket.emit('savedGamesAvailable', this.#server.getSavedGames());
     }
 
+    doGetServerConfig() {
+        this.#socket.emit('serverConfig', this.#server.appConfig);
+    }
+
     addSocketHandlers() {
+        this.#socket.on('allowPublicGames', () => {
+            this.#server.appConfig.publicGames = true;
+            this.doGetServerConfig();
+        });
+
+        this.#socket.on('disallowPublicGames', () => {
+            this.#server.appConfig.publicGames = false;
+            this.doGetServerConfig();
+        });
+
         this.#socket.on('createGame', () => {
             this.#server.createGame();
             this.doListGames();
+        });
+
+        this.#socket.on('getServerConfig', () => {
+            this.doGetServerConfig();
         });
 
         this.#socket.on('listGames', () => {

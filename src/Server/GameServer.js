@@ -10,7 +10,7 @@ import AdminSocketHandler from "./AdminSocketHandler.js";
 import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
 
 export default class GameServer {
-    #appConfig;
+    appConfig;
 
     #app;
     #server;
@@ -20,7 +20,7 @@ export default class GameServer {
     #sockets = {};
 
     constructor(appConfig) {
-        this.#appConfig = appConfig;
+        this.appConfig = appConfig;
 
         this.#app = new Express();
         this.#app.use(new cors());
@@ -29,7 +29,7 @@ export default class GameServer {
         this.#io = new IOServer(this.#server, { cors: { origin: '*' } });
 
         this.#io.of('/gameServer').on("connection", (socket) => {
-            this.#sockets[socket.id] = { handler: new ClientSocketHandler(this, socket), type: 'client' };
+            this.#sockets[socket.id] = { handler: new ClientSocketHandler(this, socket, appConfig), type: 'client' };
         });
 
         if (appConfig.adminAuthToken && appConfig.adminAuthToken.length > 0) {
@@ -44,7 +44,7 @@ export default class GameServer {
 
                 next();
             }).on("connection", (socket) => {
-                this.#sockets[socket.id] = { handler: new AdminSocketHandler(this, socket), type: 'admin' };
+                this.#sockets[socket.id] = { handler: new AdminSocketHandler(this, socket, appConfig), type: 'admin' };
             });
         }
 
@@ -54,7 +54,7 @@ export default class GameServer {
 
     #prepareNewGame(gameid) {
         var game = new Game();
-        game.debug = this.#appConfig.debugGames;
+        game.debug = this.appConfig.debugGames;
 
         if (gameid == undefined) {
             do {
@@ -108,8 +108,8 @@ export default class GameServer {
         if (this.#games[gameID]) {
             var events = this.#games[gameID].collectEvents();
 
-            if (fs.existsSync(this.#appConfig.saveLocation)) {
-                fs.writeFileSync(this.#appConfig.saveLocation + '/' + gameID + '.json', JSON.stringify(events, null, 2));
+            if (fs.existsSync(this.appConfig.saveLocation)) {
+                fs.writeFileSync(this.appConfig.saveLocation + '/' + gameID + '.json', JSON.stringify(events, null, 2));
 
                 return true;
             }
@@ -119,8 +119,8 @@ export default class GameServer {
     }
 
     loadGame(gameID) {
-        if (fs.existsSync(this.#appConfig.saveLocation)) {
-            var gameFile = this.#appConfig.saveLocation + '/' + gameID + '.json';
+        if (fs.existsSync(this.appConfig.saveLocation)) {
+            var gameFile = this.appConfig.saveLocation + '/' + gameID + '.json';
 
             if (!this.#games[gameID] && fs.existsSync(gameFile)) {
                 var events = JSON.parse(fs.readFileSync(gameFile));
@@ -159,8 +159,8 @@ export default class GameServer {
 
     getSavedGames() {
         const files = {};
-        if (fs.existsSync(this.#appConfig.saveLocation)) {
-            for (const file of fs.readdirSync(this.#appConfig.saveLocation)) {
+        if (fs.existsSync(this.appConfig.saveLocation)) {
+            for (const file of fs.readdirSync(this.appConfig.saveLocation)) {
                 var filename = file.replace(/\.json$/, '');
                 // TODO: Perhaps we should check this.
                 files[filename] = { game: filename };
@@ -174,8 +174,8 @@ export default class GameServer {
     }
 
     run() {
-        this.#server.listen(this.#appConfig.listenPort, () => {
-            console.log(`Server is listening on :${this.#appConfig.listenPort}`);
+        this.#server.listen(this.appConfig.listenPort, () => {
+            console.log(`Server is listening on :${this.appConfig.listenPort}`);
         });
     }
 }

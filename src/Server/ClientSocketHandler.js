@@ -10,8 +10,10 @@ export default class ClientSocketHandler {
     constructor(server, socket) {
         this.#server = server;
         this.#socket = socket;
+
         console.log(`New client: ${socket.id}`);
         this.#socket.emit('clientConnected', { socketID: socket.id });
+        this.#socket.emit('gameCreationEnabled', {value: this.#server.appConfig.publicGames});
 
         this.addSocketHandlers();
     }
@@ -25,9 +27,13 @@ export default class ClientSocketHandler {
 
     addSocketHandlers() {
         this.#socket.on('createGame', () => {
-            var game = this.#server.createGame();
+            if (this.#server.appConfig.publicGames) {
+                var game = this.#server.createGame();
 
-            this.#socket.emit('gameCreated', { game: game.gameID() });
+                this.#socket.emit('gameCreated', { game: game.gameID() });
+            } else {
+                this.#socket.emit('error', { error: 'Game creation is disabled.' });
+            }
         });
 
         this.#socket.on('checkGame', (id) => {
@@ -74,7 +80,8 @@ export default class ClientSocketHandler {
             }
         });
 
-        // TODO: There is no security here, anyone could rejoin as anyone else.
+        // TODO: There is no security here, anyone can rejoin as anyone else if they know their player ID
+        //       which they will do from looking at the game events...
         this.#socket.on('rejoinGame', (id, playerID) => {
             var game = this.#server.getGame(id);
 

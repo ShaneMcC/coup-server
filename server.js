@@ -13,6 +13,7 @@ dotenv.config()
 const $appConfig = {
     listenPort: parseInt(process.env.PORT) || 3000,
     adminAuthToken: process.env.ADMINAUTHTOKEN || Crypto.randomUUID(),
+    publicGames: process.env.PUBLICGAMES || true,
     debugGames: process.env.DEBUGGAMES || false,
     testGames: process.env.TESTGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || false,
     saveLocation: process.env.SAVELOCATION || __dirname + '/gamedata/',
