@@ -22,7 +22,7 @@ export default class ClientSocketHandler {
 
     addSocketHandlers() {
         this.#socket.on('createGame', () => {
-            var game = this.#server.createGame();
+            this.#server.createGame();
             this.doListGames();
         });
 
@@ -31,6 +31,7 @@ export default class ClientSocketHandler {
         });
 
         this.#socket.on('refreshGame', (gameId) => {
+            this.#socket.emit('success', { message: 'Game was refreshed.' });
             this.#server.refreshGame(gameId);
         });
 
@@ -38,6 +39,7 @@ export default class ClientSocketHandler {
             var game = this.#server.getGame(gameId);
 
             if (game != undefined) {
+                this.#socket.emit('success', { message: 'Game was ended.' });
                 game.endGame(reason ? 'Ended by admin: ${reason}' : 'Ended by admin.');
             }
 
@@ -48,6 +50,7 @@ export default class ClientSocketHandler {
             var game = this.#server.getGame(gameId);
 
             if (game != undefined) {
+                this.#socket.emit('success', { message: 'Game was killed.' });
                 game.endGame(reason ? 'Killed by admin: ${reason}' : 'Killed by admin.');
                 this.#server.removeGame(gameId);
             }
@@ -56,7 +59,9 @@ export default class ClientSocketHandler {
         });
 
         this.#socket.on('saveGame', (gameId) => {
-            if (!this.#server.saveGame(gameId)) {
+            if (this.#server.saveGame(gameId)) {
+                this.#socket.emit('success', { message: 'Game was saved.' });
+            } else {
                 this.#socket.emit('error', { error: 'Error saving game.' });
             }
             this.doListGames();
@@ -66,7 +71,9 @@ export default class ClientSocketHandler {
             var game = this.#server.getGame(gameId);
 
             if (game == undefined) {
-                if (!this.#server.loadGame(gameId)) {
+                if (this.#server.loadGame(gameId)) {
+                    this.#socket.emit('success', { message: 'Game was loaded.' });
+                } else {
                     this.#socket.emit('error', { error: 'Error loading game.' });
                 }
             } else {
