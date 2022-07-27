@@ -52,15 +52,25 @@ export default class AdminSocketHandler {
             this.#server.refreshGame(gameId);
         });
 
+        this.#socket.on('collectGameEvents', (gameId) => {
+            var game = this.#server.getGame(gameId);
+
+            if (game != undefined) {
+                this.#socket.emit('gameEventsCollected', { game: gameId, events: game.collectEvents() });
+                this.#socket.emit('success', { message: 'Game events collected.' });
+            } else {
+                this.#socket.emit('error', { error: 'Game does not exist.' });
+            }
+        });
+
         this.#socket.on('endGame', (gameId, reason) => {
             var game = this.#server.getGame(gameId);
 
             if (game != undefined) {
                 this.#socket.emit('success', { message: 'Game was ended.' });
                 game.endGame(reason ? 'Ended by admin: ${reason}' : 'Ended by admin.');
+                this.doListGames();
             }
-
-            this.doListGames();
         });
 
         this.#socket.on('killGame', (gameId, reason) => {
@@ -70,9 +80,8 @@ export default class AdminSocketHandler {
                 this.#socket.emit('success', { message: 'Game was killed.' });
                 game.endGame(reason ? 'Killed by admin: ${reason}' : 'Killed by admin.');
                 this.#server.removeGame(gameId);
+                this.doListGames();
             }
-
-            this.doListGames();
         });
 
         this.#socket.on('saveGame', (gameId) => {
