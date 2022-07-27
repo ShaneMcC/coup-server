@@ -12,8 +12,8 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 function getBoolOrDefault(value, defaultValue) {
-    if (value == undefined) { return defaultValue; }
-    return value.toLowerCase().match(/^(yes|true|1|on)$/);
+    if (value == undefined || value == null) { return defaultValue; }
+    return (value.toLowerCase().match(/^(yes|true|1|on)$/) != null);
 }
 
 const $appConfig = {
