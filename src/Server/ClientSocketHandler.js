@@ -287,7 +287,7 @@ export default class ClientSocketHandler {
         }
 
         if (event.__type == 'challengeablePlayerAction' || event.__type == 'counterablePlayerAction') {
-            if (event.player == myPlayerMask || thisGamePlayers[thisGame.playerID].influence == 0) {
+            if (event.player == myPlayerMask || (thisGamePlayers[thisGame.playerID] && thisGamePlayers[thisGame.playerID].influence.length == 0)) {
                 this.showActions(event.game, {});
             } else {
                 var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };
