@@ -40,6 +40,18 @@ export default class NewGameState extends GameState {
             return [false, 'Game is not yet started.'];
         }
 
+        // Check for correct number of players.
+        // 3-6 players.
+        //
+        // Official 2-player doesn't work well, and I haven't implemented alternative rules yet.
+        //
+        // Consider: https://whatnerd.com/coup-2-players-ultimate-variant/
+        if (Object.keys(this.game.players()).length < 3) {
+            return [false, `You need at least 3 players to play.`];
+        } else if (Object.keys(this.game.players()).length > 6) {
+            return [false, `You can not play with more than 6 players.`];
+        }
+
         // Check if all players are ready.
         for (const [playerID, player] of Object.entries(this.game.players())) {
             if (!player.ready) {
