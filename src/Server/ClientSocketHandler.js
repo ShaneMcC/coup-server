@@ -53,8 +53,8 @@ export default class ClientSocketHandler {
             if (game != undefined) {
                 var playerID = game.addPlayer(playerName);
                 if (playerID) {
+                    this.#myGames[id] = { 'playerID': playerID, 'playerMasks': {} };
                     this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
-                    this.#myGames[id] = { 'playerID': playerID };
 
                     this.loadGame(game);
                     game.listen(this.#listener);
@@ -70,8 +70,8 @@ export default class ClientSocketHandler {
             var game = this.#server.getGame(id);
 
             if (game != undefined) {
+                this.#myGames[id] = { 'playerID': undefined, 'playerMasks': {} };
                 this.#socket.emit('gameJoined', { gameID: id });
-                this.#myGames[id] = { 'playerID': undefined };
 
                 this.loadGame(game);
                 game.listen(this.#listener);
@@ -87,8 +87,8 @@ export default class ClientSocketHandler {
 
             if (game != undefined) {
                 if (game.players()[playerID]) {
+                    this.#myGames[id] = { 'playerID': playerID, 'playerMasks': {} };
                     this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
-                    this.#myGames[id] = { 'playerID': playerID };
 
                     this.loadGame(game);
                     game.listen(this.#listener);
@@ -105,7 +105,13 @@ export default class ClientSocketHandler {
 
             if (game != undefined && this.#myGames[gameid].playerID != undefined) {
                 try {
-                    game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
+                    var thisGame = this.#myGames[gameid];
+                    var targetPlayerMask = target;
+                    for (const [id, p] of Object.entries(thisGame.playerMasks)) {
+                        if (p == target) { targetPlayerMask = id; break; }
+                    }
+
+                    game.doPlayerAction(this.#myGames[gameid].playerID, action, targetPlayerMask);
                 } catch (e) {
                     this.#socket.emit('actionError', { error: e.message });
                 }
@@ -148,11 +154,12 @@ export default class ClientSocketHandler {
 
     showActions(gameid, actions) {
         var thisGame = this.#myGames[gameid];
+        var myPlayerMask = thisGame.playerMasks[thisGame.playerID] ? thisGame.playerMasks[thisGame.playerID] : thisGame.playerID;
 
         this.#socket.emit('handleGameEvent', {
             '__type': 'showActions',
             'game': gameid,
-            'player': thisGame.playerID,
+            'player': myPlayerMask,
             'date': new Date(),
             'actions': (actions ? actions : {})
         });
@@ -161,6 +168,29 @@ export default class ClientSocketHandler {
     handleGameEvent(event) {
         var thisGame = this.#myGames[event.game];
         var thisGamePlayers = this.#server.getGame(event.game)?.players();
+        var myPlayerMask = thisGame.playerMasks[thisGame.playerID] ? thisGame.playerMasks[thisGame.playerID] : thisGame.playerID;
+
+        // Mask player IDs to stop people being able to reconnect as someone else easily.
+        if (event.__type == 'addPlayer') {
+            if (event.id == thisGame.playerID) { event.self = true; }
+
+            thisGame.playerMasks[event.id] = 'Player-Mask-' + event.id;
+            event.id = thisGame.playerMasks[event.id];
+        }
+        if (event.__type == 'removePlayer') {
+            delete thisGame.playerMasks[event.id];
+        }
+        // Replace player IDs with masked IDs.
+        if (event.player && thisGame.playerMasks[event.player]) {
+            event.player = thisGame.playerMasks[event.player];
+        }
+        if (event.target && thisGame.playerMasks[event.target]) {
+            event.target = thisGame.playerMasks[event.target];
+        }
+        if (event.challenger && thisGame.playerMasks[event.challenger]) {
+            event.challenger = thisGame.playerMasks[event.challenger];
+        }
+        
 
         // Hide Deck from players, and keep track of it ourself to deal with allocateNextInfluence
         if (event.__type == 'setDeck') {
@@ -176,7 +206,7 @@ export default class ClientSocketHandler {
 
             event.__type = 'allocateInfluence';
 
-            if (event.player == thisGame.playerID) {
+            if (event.player == myPlayerMask) {
                 event.influence = influence;
             } else {
                 event.influence = 'UNKNOWN';
@@ -184,7 +214,7 @@ export default class ClientSocketHandler {
         }
 
         // Hide re-decked influences.
-        if (event.__type == 'returnInfluenceToDeck' && event.player != thisGame.playerID) {
+        if (event.__type == 'returnInfluenceToDeck' && event.player != myPlayerMask) {
             event.influence = 'UNKNOWN';
         }
 
@@ -219,7 +249,7 @@ export default class ClientSocketHandler {
         }
 
         if (event.__type == 'beginPlayerTurn') {
-            if (event.player == thisGame.playerID) {
+            if (event.player == myPlayerMask) {
                 this.showActions(event.game, PlayerTurnActions);
             } else {
                 this.showActions(event.game, {});
@@ -227,12 +257,12 @@ export default class ClientSocketHandler {
         }
 
         if (event.__type == 'challengeablePlayerAction' || event.__type == 'counterablePlayerAction') {
-            if (event.player == thisGame.playerID) {
+            if (event.player == myPlayerMask) {
                 this.showActions(event.game, {});
             } else {
                 var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };
 
-                if (PlayerTurnActions[event.action].counterActions && (PlayerTurnActions[event.action].anyoneCanCounter || event.target == thisGame.playerID)) {
+                if (PlayerTurnActions[event.action].counterActions && (PlayerTurnActions[event.action].anyoneCanCounter || event.target == myPlayerMask)) {
                     for (const ca of PlayerTurnActions[event.action].counterActions) {
                         displayActions[ca] = {
                             name: CounterActions[ca].name,
@@ -246,20 +276,20 @@ export default class ClientSocketHandler {
             }
         }
 
-        if (event.__type == 'playerPassed' && event.player == thisGame.playerID) {
+        if (event.__type == 'playerPassed' && event.player == myPlayerMask) {
             this.showActions(event.game, {});
         }
 
         if (event.__type == 'playerChallenged') {
-            if (event.player == thisGame.playerID) {
-                this.showActions(event.game, { 'REVEAL': { name: 'Reveal Influence', options: thisGamePlayers[event.player].influence } });
+            if (event.player == myPlayerMask) {
+                this.showActions(event.game, { 'REVEAL': { name: 'Reveal Influence', options: thisGamePlayers[thisGame.playerID].influence } });
             } else {
                 this.showActions(event.game, {});
             }
         }
 
         if (event.__type == 'playerCountered') {
-            if (event.challenger == thisGame.playerID) {
+            if (event.challenger == myPlayerMask) {
                 this.showActions(event.game, {});
             } else {
                 var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };
@@ -267,20 +297,20 @@ export default class ClientSocketHandler {
             }
         }
 
-        if (event.__type == 'playerPassedChallenge' && event.player == thisGame.playerID) {
+        if (event.__type == 'playerPassedChallenge' && event.player == myPlayerMask) {
             this.showActions(event.game, {});
         }
 
-        if (event.__type == 'playerFailedChallenge' && event.player == thisGame.playerID) {
+        if (event.__type == 'playerFailedChallenge' && event.player == myPlayerMask) {
             this.showActions(event.game, {});
         }
 
-        if (event.__type == 'playerMustDiscardInfluence' && event.player == thisGame.playerID) {
-            this.showActions(event.game, { 'REVEAL': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[event.player].influence } });
+        if (event.__type == 'playerMustDiscardInfluence' && event.player == myPlayerMask) {
+            this.showActions(event.game, { 'REVEAL': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[thisGame.playerID].influence } });
         }
 
-        if (event.__type == 'playerExchangingCards' && event.player == thisGame.playerID) {
-            this.showActions(event.game, { 'EXCHANGE': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[event.player].influence } });
+        if (event.__type == 'playerExchangingCards' && event.player == myPlayerMask) {
+            this.showActions(event.game, { 'EXCHANGE': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[thisGame.playerID].influence } });
         }
     }
 }
