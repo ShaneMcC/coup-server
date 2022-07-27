@@ -87,6 +87,17 @@ export default class AdminSocketHandler {
             }
         });
 
+        this.#socket.on('sendAdminMessage', (gameId, message) => {
+            var game = this.#server.getGame(gameId);
+
+            if (game != undefined) {
+                this.#socket.emit('success', { message: `Message was sent to: ${gameId}` });
+                game.adminMessage(message);
+            } else {
+                this.#socket.emit('error', { error: `${gameId} does not exist.` });
+            }
+        });
+
         this.#socket.on('endGame', (gameId, reason) => {
             var game = this.#server.getGame(gameId);
 

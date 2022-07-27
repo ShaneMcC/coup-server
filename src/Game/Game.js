@@ -95,6 +95,15 @@ export default class Game {
     doPlayerAction(playerid, action, target) {
         this.log('Player Action: ', [playerid, action, target])
         
+        if (action == 'CHAT') {
+            if (!this.#players[playerid]) {
+                return [false, 'Player is not in this game.'];
+            }
+
+            this.chatMessage(playerid, target);
+            return;
+        }
+
         var [result, reason] = this.state.handlePlayerAction(playerid, action, target);
 
         if (!result) {
@@ -169,6 +178,18 @@ export default class Game {
 
     currentPlayerID() {
         return this.#playerIDs[this.#currentPlayerNumber];
+    }
+
+    adminMessage(message) {
+        this.emit('adminMessage', {message: message});
+    }
+
+    serverMessage(message) {
+        this.emit('serverMessage', {message: message});
+    }
+
+    chatMessage(playerid, message) {
+        this.emit('chatMessage', {player: playerid, message: message});
     }
 
     addHandlers() {
