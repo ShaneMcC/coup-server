@@ -136,12 +136,13 @@ export default class GameServer {
                 if (events.length > 0) {
                     var [game, _] = this.#prepareNewGame(gameID);
                     
-                    var createGame = events[0];
                     if (events[0].__type == 'gameCreated') {
                         // Ensure this game is created with the correct ID internally.
+                        var createGame = events.splice(0, 1)[0];
                         createGame.game = gameID;
                         game.hydrate([createGame]);
 
+                        // Hydrate with the rest of the events.
                         game.hydrate(events);
                         this.#games[game.gameID()] = game;
 
