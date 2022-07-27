@@ -11,13 +11,18 @@ import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList
 import dotenv from 'dotenv'
 dotenv.config()
 
+function getBoolOrDefault(value, defaultValue) {
+    if (value == undefined) { return defaultValue; }
+    return value.toLowerCase().match(/^(yes|true|1|on)$/);
+}
+
 const $appConfig = {
     listenPort: parseInt(process.env.PORT) || 3000,
     adminAuthToken: process.env.ADMINAUTHTOKEN || Crypto.randomUUID(),
-    publicGames: process.env.PUBLICGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || true,
-    debugGames: process.env.DEBUGGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || false,
-    persistGames: process.env.PERSISTGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || false,
-    testGames: process.env.TESTGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || false,
+    publicGames: getBoolOrDefault(process.env.PUBLICGAMES, true),
+    debugGames: getBoolOrDefault(process.env.DEBUGGAMES, false),
+    persistGames: getBoolOrDefault(process.env.PERSISTGAMES, false),
+    testGames: getBoolOrDefault(process.env.TESTGAMES, false),
     saveLocation: process.env.SAVELOCATION || __dirname + '/gamedata/',
 }
 
