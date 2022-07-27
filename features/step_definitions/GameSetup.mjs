@@ -28,13 +28,9 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
 
             // First discard the auto-allocated influence.
             for (const [_, player] of Object.entries(this.game.players())) {
-                this.game.emit('discardInfluence', { 'player': player.name, 'influence': player.influence[0] });
-                this.game.emit('discardInfluence', { 'player': player.name, 'influence': player.influence[1] });
+                this.game.emit('returnInfluenceToDeck', { 'player': player.name, 'influence': player.influence[0] });
+                this.game.emit('returnInfluenceToDeck', { 'player': player.name, 'influence': player.influence[1] });
             }
-
-            // Then allocate a fresh deck for us to pick from.
-            this.game.emit('setDeck', { 'deck': [] });
-            this.game.emit('setDeck', { 'deck': this.game.getShuffledDeck() });
 
             // Now, attempt to re-allocate influence.
             for (var player of dataTable.hashes()) {

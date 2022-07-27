@@ -111,19 +111,13 @@ export default class Game {
         }
     }
 
-    getShuffledDeck() {
-        var deck = [];
+    getGameDeck() {
+        return [...this.#gameDeck];
+    }
 
-        if (this.#gameDeck.length == 0) {
-            // Shuffle a new deck.
-            for (const [card, _] of Object.entries(Cards)) {
-                deck.push(card);
-                deck.push(card);
-                deck.push(card);
-            };
-        } else {
-            deck = [...this.#gameDeck];
-        }
+    getShuffledDeck(currentDeck) {
+        if (currentDeck == undefined) { currentDeck = this.getGameDeck(); }
+        var deck = [...currentDeck];
 
         // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
         for (let i = deck.length - 1; i > 0; i--) {

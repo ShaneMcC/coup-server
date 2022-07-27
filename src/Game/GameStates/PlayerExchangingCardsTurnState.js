@@ -37,7 +37,7 @@ export default class PlayerExchangingCardsTurnState extends GameState {
 
             if (this.#count == this.#exchangesRequired) {
                 // Shuffle the deck and continue the next turn
-                this.game.emit('setDeck', { 'deck': this.game.getShuffledDeck() });
+                this.game.emit('setDeck', { 'deck': this.game.getShuffledDeck(this.game.getGameDeck()) });
                 this.game.startNextTurn();
             }
 

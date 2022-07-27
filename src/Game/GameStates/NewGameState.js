@@ -75,9 +75,7 @@ export default class NewGameState extends GameState {
         };
 
         this.game.emit('startGame');
-        // TODO: Double setDeck is lame.
-        this.game.emit('setDeck', { 'deck':  deck}); // Initial unshuffled deck.
-        this.game.emit('setDeck', { 'deck':  this.game.getShuffledDeck()}); // Shuffled Deck
+        this.game.emit('setDeck', { 'deck':  this.game.getShuffledDeck(deck)});
 
         // Allocate cards and coins to players.
         for (const [playerID, _] of Object.entries(this.game.players())) {
