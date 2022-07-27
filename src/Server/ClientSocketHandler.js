@@ -73,9 +73,11 @@ export default class ClientSocketHandler {
                     game.listen(this.#listener);
                 } else {
                     this.#socket.emit('commandError', { error: 'Unable to join game.' });
+                    this.#socket.emit('joinFailed', { gameID: id });
                 }
             } else {
                 this.#socket.emit('commandError', { error: 'Invalid game.' });
+                this.#socket.emit('joinFailed', { gameID: id });
             }
         });
 
@@ -90,6 +92,7 @@ export default class ClientSocketHandler {
                 game.listen(this.#listener);
             } else {
                 this.#socket.emit('commandError', { error: 'Invalid game.' });
+                this.#socket.emit('spectateFailed', { gameID: id });
             }
         });
 
@@ -107,6 +110,7 @@ export default class ClientSocketHandler {
                     game.listen(this.#listener);
                 } else {
                     this.#socket.emit('commandError', { error: 'Player id is not known in game.' });
+                    this.#socket.emit('rejoinFailed', { gameID: id, playerID: playerID });
                 }
             } else {
                 this.#socket.emit('commandError', { error: 'Invalid game.' });
