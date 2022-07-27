@@ -245,6 +245,8 @@ export default class Game {
         });
 
         this.#gameEvents.on('beginPlayerTurn', event => {
+            this.#currentPlayerNumber = Object.keys(this.#players).indexOf(event.player);
+
             this.state = new PlayerTurnState(this, this.#players[event.player]);
         });
 
