@@ -84,7 +84,10 @@ export default class NewGameState extends GameState {
             this.game.emit('playerGainedCoins', { 'player': playerID, 'coins': 2 });
         };
         this.game.emit('gameReady');
-        this.game.startNextTurn();
+
+        // Pick a random starting player.
+        var allPlayerIDs = Object.keys(this.game.players());
+        this.game.emit('beginPlayerTurn', {'player': allPlayerIDs[Math.floor(Math.random() * allPlayerIDs.length)]});
 
         return [true, ''];
     }

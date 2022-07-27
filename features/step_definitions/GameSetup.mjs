@@ -59,6 +59,9 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
             }
         }
 
+        // Specifically start with the first player not random.
+        this.game.emit('beginPlayerTurn', {'player': Object.keys(this.game.players())[0] });
+
         // Clear the events so that we only collect events from our test.
         this.game.clearEvents();
     }
