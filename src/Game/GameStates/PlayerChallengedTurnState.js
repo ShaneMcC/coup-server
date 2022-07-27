@@ -24,6 +24,10 @@ export default class PlayerChallengedTurnState extends GameState {
         game.log('STATE: PlayerChallenged Turn ', [player, action, challenger]);
     }
 
+    toString() {
+        return `PlayerChallenged[${this.player.name} => ${this.action} => ${this.challenger.name}]`
+    }
+
     processAction() {
 
         // If we need to continue our turn, then do so.

@@ -28,6 +28,10 @@ export default class ChallengeTurnState extends GameState {
         game.log('STATE: Challenge Turn ', [player, action, target]);
     }
 
+    toString() {
+        return `CanChallenge[${this.player.name} => ${this.action} => ${this.target?.name ? this.target.name : this.target}]`
+    }
+
     processAction() {
         if (this.#hasProcessed) { return; }
         this.#hasProcessed = true;

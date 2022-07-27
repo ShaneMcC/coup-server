@@ -12,6 +12,10 @@ export default class PlayerExchangingCardsTurnState extends GameState {
         game.log('STATE: PlayerExchangingCards Turn ', [player]);
     }
 
+    toString() {
+        return `PlayerExchangingCards[${this.player.name}]`
+    }
+
     handlePlayerAction(playerid, action, target) {
         if (!this.game.players()[playerid]) {
             return [false, 'Player is not in this game.'];

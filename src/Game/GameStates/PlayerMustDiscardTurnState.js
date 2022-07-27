@@ -12,6 +12,10 @@ export default class PlayerMustDiscardTurnState extends GameState {
         game.log('STATE: PlayerMustDiscard Turn ', [player]);
     }
 
+    toString() {
+        return `PlayerMustDiscard[${this.player.name}]`
+    }
+
     handlePlayerAction(playerid, action, target) {
         if (!this.game.players()[playerid]) {
             return [false, 'Player is not in this game.'];

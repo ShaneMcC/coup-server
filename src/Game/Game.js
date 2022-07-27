@@ -39,6 +39,10 @@ export default class Game {
         this.emit('gameCreated', {game: gameid});
     }
 
+    endGame(reason) {
+        this.emit('gameEnded', {reason: reason});
+    }
+
     gameID() {
         return this.#gameID;
     }
@@ -61,6 +65,10 @@ export default class Game {
 
     unlisten(handler) {
         this.#gameEvents.removeClientHandler(handler);
+    }
+
+    unlistenAll() {
+        this.#gameEvents.removeAllClientHandlers();
     }
 
     addPlayer(name) {
@@ -269,8 +277,12 @@ export default class Game {
             this.#players[event.player].coins -= parseInt(event.coins);
         });
 
-        this.#gameEvents.on('GameOverState', event => {
-            this.state = new GameOverState(this);
+        this.#gameEvents.on('GameOver', event => {
+            this.state = new GameOverState(this, event);
+        });
+
+        this.#gameEvents.on('gameEnded', event => {
+            this.state = new GameOverState(this, event);
         });
     }
 }

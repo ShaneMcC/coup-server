@@ -7,6 +7,10 @@ export default class NewGameState extends GameState {
         game.log('STATE: Game Created.');
     }
 
+    toString() {
+        return `NewGame`
+    }
+
     handlePlayerAction(playerid, action, target) {
         if (!this.game.players()[playerid]) {
             return [false, 'Player is not in this game.'];

@@ -1,6 +1,7 @@
 .vscode
 *.sh
 .env
+gamedata
 
 # Logs
 logs

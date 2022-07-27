@@ -12,6 +12,10 @@ export default class PlayerTurnState extends GameState {
         game.log('STATE: Player Turn ', player);
     }
 
+    toString() {
+        return `PlayerTurn[${this.player.name}]`
+    }
+
     handlePlayerAction(playerid, action, target) {
         if (!this.game.players()[playerid]) {
             return [false, 'Player is not in this game.'];

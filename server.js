@@ -1,18 +1,26 @@
 #!/usr/bin/env node
 
-import dotenv from 'dotenv'
-dotenv.config()
-
-var listenPort = parseInt(process.env.PORT);
-if (!listenPort) { listenPort = 3000; }
-
 import GameServer from './src/Server/GameServer.js';
 import TestGames from './src/Server/TestGames.js';
 
-var gs = new GameServer(listenPort);
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-var createTestGames = process.env.TESTGAMES?.toLowerCase();
-createTestGames = (createTestGames == 'yes' || createTestGames == 'true' || createTestGames == '1');
-if (createTestGames) { new TestGames(gs); }
+import dotenv from 'dotenv'
+dotenv.config()
+
+const $appConfig = {
+    listenPort: parseInt(process.env.PORT) || 3000,
+    adminAuthToken: process.env.ADMINAUTHTOKEN || Crypto.randomUUID(),
+    testGames: process.env.TESTGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || false,
+    saveLocation: process.env.SAVELOCATION || __dirname + '/gamedata/',
+}
+
+var gs = new GameServer($appConfig);
+
+if ($appConfig.testGames) {
+    new TestGames(gs);
+}
 
 gs.run();

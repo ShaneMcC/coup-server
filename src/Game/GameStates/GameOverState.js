@@ -1,8 +1,16 @@
 import GameState from './GameState.js';
 
 export default class GameOverState extends GameState {
-    constructor(game) {
+    #event;
+
+    constructor(game, event) {
         super(game);
-        game.log('STATE: Game Over.');
+        this.#event = JSON.parse(JSON.stringify(event));
+        delete this.#event['game'];
+        game.log('STATE: Game Over', [event]);
+    }
+
+    toString() {
+        return `GameOver [${JSON.stringify(this.#event)}]`
     }
 }

@@ -24,10 +24,21 @@ export default class ClientSocketHandler {
     }
 
     addSocketHandlers() {
-        this.#socket.on('createGame', (playerName) => {
+        this.#socket.on('createGame', () => {
             var game = this.#server.createGame();
 
             this.#socket.emit('gameCreated', { game: game.gameID() });
+        });
+
+        this.#socket.on('checkGame', (id) => {
+            var game = this.#server.getGame(id);
+
+            if (game != undefined) {
+                var joinable = !game.started;
+                this.#socket.emit('gameExists', { game: id, joinable: joinable});
+            } else {
+                this.#socket.emit('gameDoesNotExist', { game: id });
+            }
         });
 
         this.#socket.on('joinGame', (id, playerName) => {
@@ -35,8 +46,26 @@ export default class ClientSocketHandler {
 
             if (game != undefined) {
                 var playerID = game.addPlayer(playerName);
-                this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
-                this.#myGames[id] = { 'playerID': playerID };
+                if (playerID) {
+                    this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
+                    this.#myGames[id] = { 'playerID': playerID };
+
+                    this.loadGame(game);
+                    game.listen(this.#listener);
+                } else {
+                    this.#socket.emit('commandError', { error: 'Unable to join game.' });
+                }
+            } else {
+                this.#socket.emit('commandError', { error: 'Invalid game.' });
+            }
+        });
+
+        this.#socket.on('spectateGame', (id) => {
+            var game = this.#server.getGame(id);
+
+            if (game != undefined) {
+                this.#socket.emit('gameJoined', { gameID: id });
+                this.#myGames[id] = { 'playerID': undefined };
 
                 this.loadGame(game);
                 game.listen(this.#listener);
@@ -49,14 +78,18 @@ export default class ClientSocketHandler {
         this.#socket.on('rejoinGame', (id, playerID) => {
             var game = this.#server.getGame(id);
 
-            if (game != undefined && game.players()[playerID]) {
-                this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
-                this.#myGames[id] = { 'playerID': playerID };
+            if (game != undefined) {
+                if (game.players()[playerID]) {
+                    this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
+                    this.#myGames[id] = { 'playerID': playerID };
 
-                this.loadGame(game);
-                game.listen(this.#listener);
+                    this.loadGame(game);
+                    game.listen(this.#listener);
+                } else {
+                    this.#socket.emit('commandError', { error: 'Player id is not known in game.' });
+                }
             } else {
-                this.#socket.emit('commandError', { error: 'Unable to rejoin game.' });
+                this.#socket.emit('commandError', { error: 'Invalid game.' });
             }
         });
 
@@ -77,7 +110,6 @@ export default class ClientSocketHandler {
                 var game = this.#server.getGame(gameid);
 
                 if (game != undefined && info.playerID) {
-                    // game.removePlayer(info.playerID, 'Socket Disconnected');
                     game.unlisten(this.#listener);
                 }
             }
@@ -85,19 +117,26 @@ export default class ClientSocketHandler {
             this.#server.removeSocket(this.#socket.id);
             console.log(`Client removed: ${this.#socket.id}`);
         });
+    }
 
-        // TODO: There is no security here, anyone could run any action as any player.
-        this.#socket.on('adminAction', (gameid, playerid, action, target) => {
-            var game = this.#server.getGame(gameid);
+    gameRemoved(gameid) {
+        if (this.#myGames[gameid]) {
+            this.#socket.emit('gameRemoved', {
+                'game': gameid,
+                'date': new Date(),
+            });
 
-            if (game != undefined) {
-                try {
-                    game.doPlayerAction(playerid, action, target);
-                } catch (e) {
-                    this.#socket.emit('adminActionError', { error: e.message });
-                }
-            }
-        });
+            delete this.#myGames[gameid];
+        }
+    }
+
+    refreshGame(gameid) {
+        if (this.#myGames[gameid]) {
+            this.#socket.emit('refreshGame', {
+                'game': gameid,
+                'date': new Date(),
+            });
+        }
     }
 
     showActions(gameid, actions) {
@@ -168,7 +207,7 @@ export default class ClientSocketHandler {
             this.showActions(event.game, pregameActions);
         }
 
-        if (event.__type == 'startGame' || event.__type == 'gameOver') {
+        if (event.__type == 'startGame' || event.__type == 'gameOver' || event.__type == 'gameEnded') {
             this.showActions(event.game, {});
         }
 
