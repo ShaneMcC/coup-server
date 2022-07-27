@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import GameServer from './src/Server/GameServer.js';
-import TestGames from './src/Server/TestGames.js';
 import Crypto from 'crypto';
 import process from 'process';
 import { dirname } from 'path';
