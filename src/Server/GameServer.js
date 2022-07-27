@@ -56,7 +56,7 @@ export default class GameServer {
         var game = new Game();
         game.debug = this.appConfig.debugGames;
 
-        if (gameid == undefined) {
+        if (gameid == undefined || gameid.length == 0) {
             do {
                 gameid = uniqueNamesGenerator({ dictionaries: [adjectiveList, colourList, animalList], length: 3, separator: '-', style: 'lowercase' });
             } while (this.#games[gameid]);
@@ -73,7 +73,7 @@ export default class GameServer {
         var [game, gameid] = this.#prepareNewGame(gameid);
 
         game.createGame(gameid);
-        this.#games[game.gameID()] = game;      
+        this.#games[game.gameID()] = game;
 
         return game;
     }
@@ -104,6 +104,15 @@ export default class GameServer {
         delete this.#games[gameID];
     }
 
+    removeSaveGame(gameID) {
+        if (fs.existsSync(this.appConfig.saveLocation)) {
+            var gameFile = this.appConfig.saveLocation + '/' + gameID + '.json';
+            fs.unlinkSync(gameFile);
+        }
+
+        return false;
+    }
+
     saveGame(gameID) {
         if (this.#games[gameID]) {
             var events = this.#games[gameID].collectEvents();
@@ -128,7 +137,7 @@ export default class GameServer {
 
                 game.hydrate(events);
 
-                this.#games[game.gameID()] = game;  
+                this.#games[game.gameID()] = game;
 
                 return true;
             }

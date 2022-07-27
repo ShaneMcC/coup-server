@@ -1,3 +1,5 @@
+import process from 'process';
+
 export default class AdminSocketHandler {
     #socket;
     #server;
@@ -36,7 +38,7 @@ export default class AdminSocketHandler {
             try {
                 this.#server.createGame(gameId);
                 this.doListGames();
-                this.#socket.emit('success', { message: 'New game was crated.' });
+                this.#socket.emit('success', { message: `New game was created.` });
             } catch (e) {
                 this.#socket.emit('error', { error: `New game was not created: ${e.message}` });
             }
@@ -96,6 +98,15 @@ export default class AdminSocketHandler {
             this.doListGames();
         });
 
+        this.#socket.on('removeSavedGame', (gameId) => {
+            if (this.#server.removeSaveGame(gameId)) {
+                this.#socket.emit('success', { message: 'Saved game was removed.' });
+            } else {
+                this.#socket.emit('error', { error: 'Error removing saved game.' });
+            }
+            this.doListGames();
+        });
+
         this.#socket.on('loadGame', (gameId) => {
             var game = this.#server.getGame(gameId);
 
@@ -112,6 +123,27 @@ export default class AdminSocketHandler {
             this.doListGames();
         });
 
+        this.#socket.on('saveAllGames', () => {
+            this.#socket.emit('error', { error: 'Command not supported.' });
+        });
+
+        this.#socket.on('loadAllGames', () => {
+            this.#socket.emit('error', { error: 'Command not supported.' });
+        });
+
+        this.#socket.on('killAllGames', () => {
+            this.#socket.emit('error', { error: 'Command not supported.' });
+        });
+
+        this.#socket.on('refreshAllGames', () => {
+            this.#socket.emit('error', { error: 'Command not supported.' });
+        });
+
+        this.#socket.on('killServer', () => {
+            this.#socket.emit('success', { message: 'Server is exiting.' });
+            process.exit(0);
+        });
+
         this.#socket.on('disconnect', () => {
             this.#server.removeSocket(this.#socket.id);
             console.log(`Client removed: ${this.#socket.id}`);
@@ -123,6 +155,20 @@ export default class AdminSocketHandler {
             if (game != undefined) {
                 try {
                     game.doPlayerAction(playerid, action, target);
+                } catch (e) {
+                    this.#socket.emit('error', { error: e.message });
+                }
+            }
+        });
+
+        this.#socket.on('adminEmitEvent', (gameid, event) => {
+            var game = this.#server.getGame(gameid);
+
+            if (game != undefined) {
+                try {
+                    // Weird use of hydrate, but should work.
+                    game.hydrate([event]);
+                    this.#socket.emit('success', { message: 'Event emited to game.' });
                 } catch (e) {
                     this.#socket.emit('error', { error: e.message });
                 }
