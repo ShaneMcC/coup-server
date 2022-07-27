@@ -350,6 +350,14 @@ export default class ClientSocketHandler {
             }
         }
 
+        if (event.__type == 'playerMustDiscardInfluence' && event.player != myPlayerMask) {
+            this.showActions(event.game, {});
+        }
+
+        if (event.__type == 'playerPerformedAction' && event.player == myPlayerMask) {
+            this.showActions(event.game, {});
+        }
+
         if (event.__type == 'playerPassedChallenge' && event.player == myPlayerMask) {
             this.showActions(event.game, {});
         }
