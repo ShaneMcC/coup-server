@@ -24,6 +24,7 @@ export default class Game {
     #gameID = '';
 
     started = false;
+    ended = false;
     createdAt = new Date(0);
     debug = false;
 
@@ -281,10 +282,12 @@ export default class Game {
 
         this.#gameEvents.on('GameOver', event => {
             this.state = new GameOverState(this, event);
+            this.ended = true;
         });
 
         this.#gameEvents.on('gameEnded', event => {
             this.state = new GameOverState(this, event);
+            this.ended = true;
         });
     }
 }
