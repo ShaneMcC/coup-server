@@ -54,7 +54,7 @@ export default class GameServer {
 
     #prepareNewGame(gameid) {
         var game = new Game();
-        game.debug = true;
+        game.debug = this.#appConfig.debugGames;
 
         if (gameid == undefined) {
             do {

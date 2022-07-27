@@ -7,7 +7,7 @@
   "scripts": {
     "test": "cucumber-js",
     "start": "node server.js",
-    "dev": "TESTGAMES=true ADMINAUTHTOKEN=password node server.js"
+    "dev": "TESTGAMES=true DEBUGGAMES=true ADMINAUTHTOKEN=password node server.js"
   },
   "author": "Shane Mc Cormack",
   "license": "MIT",
