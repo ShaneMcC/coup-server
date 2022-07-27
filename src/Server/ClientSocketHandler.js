@@ -14,16 +14,28 @@ export default class ClientSocketHandler {
 
         console.log(`New client: ${socket.id}`);
         this.#socket.emit('clientConnected', { socketID: socket.id });
-        this.#socket.emit('gameCreationEnabled', {value: this.#server.appConfig.publicGames});
+        this.#socket.emit('gameCreationEnabled', { value: this.#server.appConfig.publicGames });
 
         this.addSocketHandlers();
     }
 
     loadGame(game) {
+        this.#myGames[game.gameID()].gameLoaded = false;
         for (const event of game.collectEvents()) {
             this.#listener(event);
         }
         this.#socket.emit('gameLoaded', { gameID: game.gameID() });
+        this.#myGames[game.gameID()].gameLoaded = true;
+        this.showActions(game.gameID(), this.#myGames[game.gameID()].lastActions);
+    }
+
+    addKnownGame(gameID, playerID) {
+        this.#myGames[gameID] = {
+            'playerID': playerID,
+            'playerMasks': {},
+            'gameLoaded': false,
+            'lastActions': {},
+        };
     }
 
     addSocketHandlers() {
@@ -42,7 +54,7 @@ export default class ClientSocketHandler {
 
             if (game != undefined) {
                 var joinable = !game.started;
-                this.#socket.emit('gameExists', { game: id, joinable: joinable});
+                this.#socket.emit('gameExists', { game: id, joinable: joinable });
             } else {
                 this.#socket.emit('gameDoesNotExist', { game: id });
             }
@@ -54,7 +66,7 @@ export default class ClientSocketHandler {
             if (game != undefined) {
                 var playerID = game.addPlayer(playerName);
                 if (playerID) {
-                    this.#myGames[id] = { 'playerID': playerID, 'playerMasks': {} };
+                    this.addKnownGame(id, playerID);
                     this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
 
                     this.loadGame(game);
@@ -71,7 +83,7 @@ export default class ClientSocketHandler {
             var game = this.#server.getGame(id);
 
             if (game != undefined) {
-                this.#myGames[id] = { 'playerID': undefined, 'playerMasks': {} };
+                this.addKnownGame(id, undefined);
                 this.#socket.emit('gameJoined', { gameID: id });
 
                 this.loadGame(game);
@@ -88,7 +100,7 @@ export default class ClientSocketHandler {
 
             if (game != undefined) {
                 if (game.players()[playerID]) {
-                    this.#myGames[id] = { 'playerID': playerID, 'playerMasks': {} };
+                    this.addKnownGame(id, playerID);
                     this.#socket.emit('gameJoined', { gameID: id, playerID: playerID });
 
                     this.loadGame(game);
@@ -156,14 +168,19 @@ export default class ClientSocketHandler {
     showActions(gameid, actions) {
         var thisGame = this.#myGames[gameid];
         var myPlayerMask = thisGame.playerMasks[thisGame.playerID] ? thisGame.playerMasks[thisGame.playerID] : thisGame.playerID;
+        thisGame.lastActions = actions;
 
-        this.#socket.emit('handleGameEvent', {
-            '__type': 'showActions',
-            'game': gameid,
-            'player': myPlayerMask,
-            'date': new Date(),
-            'actions': (actions ? actions : {})
-        });
+        // Only actually show actions once the game has loaded.
+        // Saves us sending generated-events that we don't need to.
+        if (thisGame.gameLoaded) {
+            this.#socket.emit('handleGameEvent', {
+                '__type': 'showActions',
+                'game': gameid,
+                'player': myPlayerMask,
+                'date': new Date(),
+                'actions': (actions ? actions : {})
+            });
+        }
     }
 
     handleGameEvent(event) {
