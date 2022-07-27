@@ -201,9 +201,6 @@ export default class ClientSocketHandler {
             thisGame.playerMasks[event.id] = newMask;
             event.id = thisGame.playerMasks[event.id];
         }
-        if (event.__type == 'removePlayer') {
-            delete thisGame.playerMasks[event.id];
-        }
         // Replace player IDs with masked IDs.
         if (event.player && thisGame.playerMasks[event.player]) {
             event.player = thisGame.playerMasks[event.player];
@@ -213,6 +210,9 @@ export default class ClientSocketHandler {
         }
         if (event.challenger && thisGame.playerMasks[event.challenger]) {
             event.challenger = thisGame.playerMasks[event.challenger];
+        }
+        if (event.__type == 'removePlayer') {
+            delete thisGame.playerMasks[event.id];
         }
 
         // Hide Deck from players, and keep track of it ourself to deal with allocateNextInfluence
