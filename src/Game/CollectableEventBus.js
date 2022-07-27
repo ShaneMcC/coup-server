@@ -20,7 +20,7 @@ export default class CollectableEventBus extends EventEmitter {
             eventBits['date'] = new Date();
         }
 
-        if (!eventBits['game']) {
+        if (this.#game.gameID() && (!eventBits['game'] || eventBits['game'] != this.#game.gameID())) {
             eventBits['game'] = this.#game.gameID();
         }
 

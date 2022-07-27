@@ -133,13 +133,21 @@ export default class GameServer {
 
             if (!this.#games[gameID] && fs.existsSync(gameFile)) {
                 var events = JSON.parse(fs.readFileSync(gameFile));
-                var [game, _] = this.#prepareNewGame(gameID);
+                if (events.length > 0) {
+                    var [game, _] = this.#prepareNewGame(gameID);
+                    
+                    var createGame = events[0];
+                    if (events[0].__type == 'gameCreated') {
+                        // Ensure this game is created with the correct ID internally.
+                        createGame.game = gameID;
+                        game.hydrate([createGame]);
 
-                game.hydrate(events);
+                        game.hydrate(events);
+                        this.#games[game.gameID()] = game;
 
-                this.#games[game.gameID()] = game;
-
-                return true;
+                        return true;
+                    }
+                }
             }
         }
 
