@@ -41,6 +41,7 @@ export default class CollectableEventBus extends EventEmitter {
     }
 
     addClientHandler(handler) {
+        this.#clientEventBus.removeListener('handleEvent', handler);
         this.#clientEventBus.on('handleEvent', handler);
     }
 
