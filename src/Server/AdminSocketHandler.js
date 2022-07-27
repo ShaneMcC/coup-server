@@ -34,9 +34,14 @@ export default class AdminSocketHandler {
             this.doGetServerConfig();
         });
 
-        this.#socket.on('createGame', () => {
-            this.#server.createGame();
-            this.doListGames();
+        this.#socket.on('createGame', (gameId) => {
+            try {
+                this.#server.createGame(gameId);
+                this.doListGames();
+                this.#socket.emit('success', { message: 'New game was crated.' });
+            } catch (e) {
+                this.#socket.emit('error', { error: `New game was not created: ${e.message}` });
+            }
         });
 
         this.#socket.on('getServerConfig', () => {
