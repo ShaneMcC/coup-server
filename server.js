@@ -14,9 +14,9 @@ dotenv.config()
 const $appConfig = {
     listenPort: parseInt(process.env.PORT) || 3000,
     adminAuthToken: process.env.ADMINAUTHTOKEN || Crypto.randomUUID(),
-    publicGames: process.env.PUBLICGAMES || true,
-    debugGames: process.env.DEBUGGAMES || false,
-    persistGames: process.env.PERSISTGAMES || false,
+    publicGames: process.env.PUBLICGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || true,
+    debugGames: process.env.DEBUGGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || false,
+    persistGames: process.env.PERSISTGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || false,
     testGames: process.env.TESTGAMES?.toLowerCase().match(/^(yes|true|1|on)$/) || false,
     saveLocation: process.env.SAVELOCATION || __dirname + '/gamedata/',
 }
