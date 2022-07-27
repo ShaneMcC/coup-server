@@ -1,4 +1,5 @@
 import { Actions as PlayerTurnActions, CounterActions } from "../Game/Actions.js";
+import Crypto from 'crypto';
 
 export default class ClientSocketHandler {
     #socket;
@@ -174,7 +175,13 @@ export default class ClientSocketHandler {
         if (event.__type == 'addPlayer') {
             if (event.id == thisGame.playerID) { event.self = true; }
 
-            thisGame.playerMasks[event.id] = 'Player-Mask-' + event.id;
+            // Generate a unique mask for this player.
+            var newMask = '';
+            do {
+                newMask = 'Player-Mask-' + Crypto.randomUUID();
+            } while (Object.values(thisGame.playerMasks).indexOf(newMask) > -1);
+
+            thisGame.playerMasks[event.id] = newMask;
             event.id = thisGame.playerMasks[event.id];
         }
         if (event.__type == 'removePlayer') {
@@ -190,7 +197,6 @@ export default class ClientSocketHandler {
         if (event.challenger && thisGame.playerMasks[event.challenger]) {
             event.challenger = thisGame.playerMasks[event.challenger];
         }
-        
 
         // Hide Deck from players, and keep track of it ourself to deal with allocateNextInfluence
         if (event.__type == 'setDeck') {
