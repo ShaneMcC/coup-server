@@ -226,7 +226,7 @@ export default class ClientSocketHandler {
         if (event.__type == 'setDeck') {
             thisGame['deck'] = event.deck;
 
-            delete event.deck;
+            event.deck = Array(event.deck.length - 1).fill("UNKNOWN");
         }
 
         // Modify allocateNextInfluence to actually be useful for the client if it is us
@@ -274,8 +274,31 @@ export default class ClientSocketHandler {
             this.showActions(event.game, pregameActions);
         }
 
-        if (event.__type == 'startGame' || event.__type == 'gameOver' || event.__type == 'gameEnded') {
+        if (event.__type == 'startGame') {
             this.showActions(event.game, {});
+        }
+
+        if (event.__type == 'gameOver' || event.__type == 'gameEnded') {
+            this.showActions(event.game, {});
+
+            // Reveal all player influences that we hid earlier.
+            for (const [pid, player] of Object.entries(thisGamePlayers)) {
+                this.#socket.emit('handleGameEvent', {
+                    '__type': 'showPlayerInfluence',
+                    'game': event.game,
+                    'player': thisGame.playerMasks[pid] ? thisGame.playerMasks[pid] : pid,
+                    'date': event.date,
+                    'influence': player.influence
+                });
+            }
+            
+            // And the deck.
+            this.#socket.emit('handleGameEvent', {
+                '__type': 'setDeck',
+                'game': event.game,
+                'date': event.date,
+                'deck': thisGame['deck'],
+            });
         }
 
         if (event.__type == 'beginPlayerTurn') {
