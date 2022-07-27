@@ -211,6 +211,9 @@ export default class ClientSocketHandler {
         if (event.challenger && thisGame.playerMasks[event.challenger]) {
             event.challenger = thisGame.playerMasks[event.challenger];
         }
+        if (event.kickedBy && thisGame.playerMasks[event.kickedBy]) {
+            event.kickedBy = thisGame.playerMasks[event.kickedBy];
+        }
         if (event.__type == 'removePlayer') {
             delete thisGame.playerMasks[event.id];
         }
