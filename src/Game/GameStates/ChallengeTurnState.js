@@ -39,6 +39,7 @@ export default class ChallengeTurnState extends GameState {
         this.game.log('STATE: Challenge/ProcessAction ', [this.player, this.action, this.target]);
 
         if (Actions[this.action]) {
+            this.game.emit('playerPerformedAction', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id });
             Actions[this.action].process(this.game, this.player, this.target);
         }
     }

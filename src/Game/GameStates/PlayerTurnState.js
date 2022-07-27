@@ -63,6 +63,7 @@ export default class PlayerTurnState extends GameState {
             this.game.emit('challengeablePlayerAction', { 'player': this.player.id, 'action': action, 'target': target });
         } else {
             // Action happens immediately.
+            this.game.emit('playerPerformedAction', { 'player': this.player.id, 'action': action, 'target': target });
             Actions[action].process(this.game, this.player, this.game.players()[target]);
 
             // If the action doesn't change the game state, then we can move on to the next turn
