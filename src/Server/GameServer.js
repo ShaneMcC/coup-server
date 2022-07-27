@@ -109,7 +109,7 @@ export default class GameServer {
             var events = this.#games[gameID].collectEvents();
 
             if (fs.existsSync(this.#appConfig.saveLocation)) {
-                fs.writeFileSync(this.#appConfig.saveLocation + '/' + gameID + '.json', JSON.stringify(events));
+                fs.writeFileSync(this.#appConfig.saveLocation + '/' + gameID + '.json', JSON.stringify(events, null, 2));
 
                 return true;
             }
