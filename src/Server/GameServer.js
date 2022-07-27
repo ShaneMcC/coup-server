@@ -78,6 +78,28 @@ export default class GameServer {
         return game;
     }
 
+    createTestGame(gameID, players) {
+        try {
+            var testGame = this.createGame(gameID);
+
+            for (const player of players) {
+                testGame.emit('addPlayer', { 'id': player, 'name': player });
+                testGame.doPlayerAction(player, 'READY');
+            }
+
+            testGame.doPlayerAction(players[0], 'STARTGAME');
+
+            for (const player of players) {
+                testGame.doPlayerAction(player, 'INCOME');
+            }
+
+            return testGame;
+        } catch (e) {
+            this.removeGame(gameID);
+            throw e;
+        }
+    }
+
     getGame(gameID) {
         return this.#games[gameID];
     }
@@ -135,7 +157,7 @@ export default class GameServer {
                 var events = JSON.parse(fs.readFileSync(gameFile));
                 if (events.length > 0) {
                     var [game, _] = this.#prepareNewGame(gameID);
-                    
+
                     if (events[0].__type == 'gameCreated') {
                         // Ensure this game is created with the correct ID internally.
                         var createGame = events.splice(0, 1)[0];

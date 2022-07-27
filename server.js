@@ -7,6 +7,7 @@ import process from 'process';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
+import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -24,7 +25,13 @@ const $appConfig = {
 var gs = new GameServer($appConfig);
 
 if ($appConfig.testGames) {
-    new TestGames(gs);
+    gs.createTestGame('TestGame', ['Alice', 'Bob', 'Charlie']);
+
+    const nameConfig = { dictionaries: [[...adjectiveList, ...colourList], animalList], length: 2, separator: '', style: 'capital' };
+    const player1 = uniqueNamesGenerator(nameConfig);
+    const player2 = uniqueNamesGenerator(nameConfig);
+    const player3 = uniqueNamesGenerator(nameConfig);
+    gs.createTestGame(undefined, [player1, player2, player3]);
 }
 
 if ($appConfig.persistGames) {

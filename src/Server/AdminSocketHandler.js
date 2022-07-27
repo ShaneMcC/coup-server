@@ -1,4 +1,5 @@
 import process from 'process';
+import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
 
 export default class AdminSocketHandler {
     #socket;
@@ -36,9 +37,27 @@ export default class AdminSocketHandler {
 
         this.#socket.on('createGame', (gameId) => {
             try {
-                this.#server.createGame(gameId);
+                var game = this.#server.createGame(gameId);
                 this.doListGames();
-                this.#socket.emit('success', { message: `New game was created.` });
+                this.#socket.emit('success', { message: `New game was created: ${game.gameID()}` });
+            } catch (e) {
+                this.#socket.emit('error', { error: `New game was not created: ${e.message}` });
+            }
+        });
+
+        this.#socket.on('createTestGame', (gameId, playerCount) => {
+            try {
+                playerCount = parseInt(playerCount);
+                if (playerCount == undefined) { playerCount = 3; }
+                var players = [];
+                const nameConfig = { dictionaries: [[...adjectiveList, ...colourList], animalList], length: 2, separator: '', style: 'capital' };
+                for (var i = 0; i < playerCount; i++) {
+                    players.push(uniqueNamesGenerator(nameConfig));
+                }
+
+                var game = this.#server.createTestGame(gameId, players);
+                this.doListGames();
+                this.#socket.emit('success', { message: `New game was created: ${game.gameID()}` });
             } catch (e) {
                 this.#socket.emit('error', { error: `New game was not created: ${e.message}` });
             }
@@ -53,7 +72,7 @@ export default class AdminSocketHandler {
         });
 
         this.#socket.on('refreshGame', (gameId) => {
-            this.#socket.emit('success', { message: 'Game was refreshed.' });
+            this.#socket.emit('success', { message: `${gameId} was refreshed.` });
             this.#server.refreshGame(gameId);
         });
 
@@ -62,9 +81,9 @@ export default class AdminSocketHandler {
 
             if (game != undefined) {
                 this.#socket.emit('gameEventsCollected', { game: gameId, events: game.collectEvents() });
-                this.#socket.emit('success', { message: 'Game events collected.' });
+                this.#socket.emit('success', { message: `${gameId} events collected.` });
             } else {
-                this.#socket.emit('error', { error: 'Game does not exist.' });
+                this.#socket.emit('error', { error: `${gameId} does not exist.` });
             }
         });
 
@@ -72,8 +91,8 @@ export default class AdminSocketHandler {
             var game = this.#server.getGame(gameId);
 
             if (game != undefined) {
-                this.#socket.emit('success', { message: 'Game was ended.' });
-                game.endGame(reason ? 'Ended by admin: ${reason}' : 'Ended by admin.');
+                this.#socket.emit('success', { message: `${gameId} was ended.` });
+                game.endGame(reason ? `Ended by admin: ${reason}` : 'Ended by admin.');
                 this.doListGames();
             }
         });
@@ -82,8 +101,8 @@ export default class AdminSocketHandler {
             var game = this.#server.getGame(gameId);
 
             if (game != undefined) {
-                this.#socket.emit('success', { message: 'Game was killed.' });
-                game.endGame(reason ? 'Killed by admin: ${reason}' : 'Killed by admin.');
+                this.#socket.emit('success', { message: `${gameId} was killed.` });
+                game.endGame(reason ? `Killed by admin: ${reason}` : 'Killed by admin.');
                 this.#server.removeGame(gameId);
                 this.doListGames();
             }
@@ -91,18 +110,18 @@ export default class AdminSocketHandler {
 
         this.#socket.on('saveGame', (gameId) => {
             if (this.#server.saveGame(gameId)) {
-                this.#socket.emit('success', { message: 'Game was saved.' });
+                this.#socket.emit('success', { message: `${gameId} was saved.` });
             } else {
-                this.#socket.emit('error', { error: 'Error saving game.' });
+                this.#socket.emit('error', { error: `Error saving ${gameId}.` });
             }
             this.doListGames();
         });
 
         this.#socket.on('removeSavedGame', (gameId) => {
             if (this.#server.removeSaveGame(gameId)) {
-                this.#socket.emit('success', { message: 'Saved game was removed.' });
+                this.#socket.emit('success', { message: `${gameId} was removed.` });
             } else {
-                this.#socket.emit('error', { error: 'Error removing saved game.' });
+                this.#socket.emit('error', { error: `Error removing ${gameId}.` });
             }
             this.doListGames();
         });
@@ -112,31 +131,31 @@ export default class AdminSocketHandler {
 
             if (game == undefined) {
                 if (this.#server.loadGame(gameId)) {
-                    this.#socket.emit('success', { message: 'Game was loaded.' });
+                    this.#socket.emit('success', { message: `${gameId} was loaded.` });
                 } else {
-                    this.#socket.emit('error', { error: 'Error loading game.' });
+                    this.#socket.emit('error', { error: `Error loading ${gameId}.` });
                 }
             } else {
-                this.#socket.emit('error', { error: 'Game already exists.' });
+                this.#socket.emit('error', { error: `${gameId} already exists.` });
             }
 
             this.doListGames();
         });
 
         this.#socket.on('saveAllGames', () => {
-            this.#socket.emit('error', { error: 'Command not supported.' });
+            this.#socket.emit('error', { error: 'saveAllGames not supported.' });
         });
 
         this.#socket.on('loadAllGames', () => {
-            this.#socket.emit('error', { error: 'Command not supported.' });
+            this.#socket.emit('error', { error: 'loadAllGames not supported.' });
         });
 
         this.#socket.on('killAllGames', () => {
-            this.#socket.emit('error', { error: 'Command not supported.' });
+            this.#socket.emit('error', { error: 'killAllGames not supported.' });
         });
 
         this.#socket.on('refreshAllGames', () => {
-            this.#socket.emit('error', { error: 'Command not supported.' });
+            this.#socket.emit('error', { error: 'refreshAllGames not supported.' });
         });
 
         this.#socket.on('killServer', () => {
@@ -168,7 +187,7 @@ export default class AdminSocketHandler {
                 try {
                     // Weird use of hydrate, but should work.
                     game.hydrate([event]);
-                    this.#socket.emit('success', { message: 'Event emited to game.' });
+                    this.#socket.emit('success', { message: `Event emited to ${gameid}.` });
                 } catch (e) {
                     this.#socket.emit('error', { error: e.message });
                 }
