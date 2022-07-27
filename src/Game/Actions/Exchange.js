@@ -9,6 +9,6 @@ export default {
         game.emit('allocateNextInfluence', { 'player': player.id });
 
         // They need to silently discard 2 of them
-        game.emit('playerExchangingCards', {player: player.id});
+        game.emit('playerExchangingCards', {player: player.id, count: 2});
     },
 }

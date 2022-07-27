@@ -292,7 +292,7 @@ export default class Game {
         });
 
         this.#gameEvents.on('playerExchangingCards', event => {
-            this.state = new PlayerExchangingCardsTurnState(this, this.#players[event.player]);
+            this.state = new PlayerExchangingCardsTurnState(this, this.#players[event.player], event.count ? event.count : 2);
         });
 
         this.#gameEvents.on('playerGainedCoins', event => {

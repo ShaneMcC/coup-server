@@ -4,16 +4,18 @@ export default class PlayerExchangingCardsTurnState extends GameState {
     player;
 
     #count = 0;
+    #exchangesRequired = 2;
 
-    constructor(game, player, previousState) {
+    constructor(game, player, exchangesRequired) {
         super(game);
         this.player = player;
+        this.#exchangesRequired = exchangesRequired;
 
-        game.log('STATE: PlayerExchangingCards Turn ', [player]);
+        game.log('STATE: PlayerExchangingCards Turn ', [player, exchangesRequired]);
     }
 
     toString() {
-        return `PlayerExchangingCards[${this.player.name}]`
+        return `PlayerExchangingCards[${this.player.name} => ${this.#exchangesRequired}]`
     }
 
     handlePlayerAction(playerid, action, target) {
@@ -33,7 +35,7 @@ export default class PlayerExchangingCardsTurnState extends GameState {
             this.game.emit('returnInfluenceToDeck', { 'player': this.player.id, 'influence': target });
             this.#count++;
 
-            if (this.#count == 2) {
+            if (this.#count == this.#exchangesRequired) {
                 // Shuffle the deck and continue the next turn
                 this.game.emit('setDeck', { 'deck': this.game.getShuffledDeck() });
                 this.game.startNextTurn();
