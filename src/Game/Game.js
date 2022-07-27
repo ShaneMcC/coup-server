@@ -24,6 +24,7 @@ export default class Game {
     #gameID = '';
 
     started = false;
+    createdAt = new Date(0);
     debug = false;
 
     constructor() {
@@ -172,6 +173,7 @@ export default class Game {
     addHandlers() {
         this.#gameEvents.on('gameCreated', event => {
             this.#gameID = event.game;
+            this.createdAt = event.date;
         });
 
         this.#gameEvents.on('addPlayer', event => {

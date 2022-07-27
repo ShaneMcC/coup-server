@@ -78,10 +78,6 @@ export default class GameServer {
         return game;
     }
 
-    getGameIDs() {
-        return Object.keys(this.#games);
-    }
-
     getGame(gameID) {
         return this.#games[gameID];
     }
@@ -141,11 +137,33 @@ export default class GameServer {
         return false;
     }
 
+    getGameIDs() {
+        return Object.keys(this.#games);
+    }
+
+    getAvailableGames() {
+        const games = {};
+        for (const [gameID, game] of Object.entries(this.#games)) {
+            var gameInfo = {
+                game: game.gameID(),
+                created: game.createdAt,
+                state: game.state.toString(),
+                players: game.players(),
+            }
+
+            games[game.gameID()] = gameInfo;
+        }
+
+        return games;
+    }
+
     getSavedGames() {
-        const files = [];
+        const files = {};
         if (fs.existsSync(this.#appConfig.saveLocation)) {
             for (const file of fs.readdirSync(this.#appConfig.saveLocation)) {
-                files.push(file.replace(/\.json$/, ''));
+                var filename = file.replace(/\.json$/, '');
+                // TODO: Perhaps we should check this.
+                files[filename] = { game: filename };
             }
         }
         return files;

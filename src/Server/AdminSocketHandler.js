@@ -16,26 +16,8 @@ export default class ClientSocketHandler {
     }
 
     doListGames() {
-        const games = {};
-        for (const gameID of this.#server.getGameIDs()) {
-            var game = this.#server.getGame(gameID);
-
-            var gameInfo = {
-                game: game.gameID(),
-                state: game.state.toString(),
-                players: game.players(),
-            }
-
-            games[game.gameID()] = gameInfo;
-        }
-        this.#socket.emit('gamesAvailable', games);
-
-        const savedGames = {};
-        for (const gameID of this.#server.getSavedGames()) {
-            savedGames[gameID] = {game: gameID}
-        }
-        this.#socket.emit('savedGamesAvailable', savedGames);
-        
+        this.#socket.emit('gamesAvailable', this.#server.getAvailableGames());
+        this.#socket.emit('savedGamesAvailable', this.#server.getSavedGames());
     }
 
     addSocketHandlers() {
@@ -106,7 +88,7 @@ export default class ClientSocketHandler {
                 try {
                     game.doPlayerAction(playerid, action, target);
                 } catch (e) {
-                    this.#socket.emit('adminActionError', { error: e.message });
+                    this.#socket.emit('error', { error: e.message });
                 }
             }
         });
