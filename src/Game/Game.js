@@ -282,6 +282,10 @@ export default class Game {
             this.#players[event.player].coins -= parseInt(event.coins);
         });
 
+        this.#gameEvents.on('playerSpentCoins', event => {
+            this.#players[event.player].coins -= parseInt(event.coins);
+        });
+
         this.#gameEvents.on('GameOver', event => {
             this.state = new GameOverState(this, event);
             this.ended = true;

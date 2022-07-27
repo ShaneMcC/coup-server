@@ -49,12 +49,16 @@ export default class PlayerTurnState extends GameState {
             target = undefined;
         }
 
-        if (Actions[action].requiredCoins && this.player.coins < Actions[action].requiredCoins) {
-            return [false, `${Actions[action].name} requires ${Actions[action].requiredCoins} coins`];
-        }
-
         if (this.player.coins >= 10 && action != 'COUP') {
             return [false, `${Actions[action].name} is not valid with more than 10 coins.`];
+        }
+
+        if (Actions[action].requiredCoins) {
+            if (this.player.coins < Actions[action].requiredCoins) {
+                return [false, `${Actions[action].name} requires ${Actions[action].requiredCoins} coins`];
+            } else {
+                this.game.emit('playerSpentCoins', {player: this.player.id, coins: Actions[action].requiredCoins});
+            }
         }
 
         if (Actions[action].counterActions && Actions[action].counterActions.length > 0) {

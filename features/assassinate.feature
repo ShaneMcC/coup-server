@@ -22,6 +22,7 @@ Feature: Can a player assassinate correctly?
     Then Bob is the current player
     And Charlie has 2 influence remaining
     And Alice has 2 influence remaining
+    And Alice has 2 coins remaining
 
   Scenario: Bob wants to Assassinate Charlie and gets challenged.
     When it is Bobs turn
@@ -31,14 +32,7 @@ Feature: Can a player assassinate correctly?
     And Charlie has 2 influence remaining
     And Bob has 1 influence remaining
     And Charlie is the current player
-
-  Scenario: Alice wants to Assassinate Charlie and gets countered.
-    When Alice wants to claim ASSASSINATE on Charlie
-    And Charlie counters with BLOCK_ASSASSINATE
-    And all players pass
-    Then Bob is the current player
-    And Charlie has 2 influence remaining
-    And Alice has 2 influence remaining
+    And Bob has 2 coins remaining
 
   Scenario: Alice wants to Assassinate Charlie and gets challenged by Charlie.
     When Alice wants to claim ASSASSINATE on Charlie
@@ -50,6 +44,7 @@ Feature: Can a player assassinate correctly?
     And Charlie has 0 influence remaining
     And Bob has 2 influence remaining
     And Alice has 2 influence remaining
+    And Alice has 2 coins remaining
 
   Scenario: Alice wants to Assassinate Charlie and gets challenged by Bob.
     When Alice wants to claim ASSASSINATE on Charlie
@@ -61,6 +56,7 @@ Feature: Can a player assassinate correctly?
     And Charlie has 1 influence remaining
     And Bob has 1 influence remaining
     And Alice has 2 influence remaining
+    And Alice has 2 coins remaining
 
   Scenario: Alice wants to Assassinate Charlie without her contessa and gets challenged by Bob.
     When Alice wants to claim ASSASSINATE on Charlie
@@ -70,6 +66,7 @@ Feature: Can a player assassinate correctly?
     And Charlie has 2 influence remaining
     And Bob has 2 influence remaining
     And Alice has 1 influence remaining
+    And Alice has 2 coins remaining
 
   Scenario: Alice wants to Assassinate Charlie and gets countered but and the counter is challenged successfully
     When Alice wants to claim ASSASSINATE on Charlie
@@ -81,6 +78,7 @@ Feature: Can a player assassinate correctly?
     And Charlie has 2 influence remaining
     And Bob has 2 influence remaining
     And Alice has 1 influence remaining
+    And Alice has 2 coins remaining
 
   Scenario: Alice wants to Assassinate Charlie and gets countered but and the counter is challenged unsuccessfully
     When Alice wants to claim ASSASSINATE on Charlie
@@ -92,3 +90,4 @@ Feature: Can a player assassinate correctly?
     And Charlie has 0 influence remaining
     And Bob has 2 influence remaining
     And Alice has 2 influence remaining
+    And Alice has 2 coins remaining

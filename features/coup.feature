@@ -29,6 +29,7 @@ Feature: Can a player coup another player
     And Alice has 1 influence remaining
     And Bob has 2 influence remaining
     Then Charlie is the current player
+    And Bob has 3 coins remaining
 
   Scenario: Bob can successfully coup Charlie
     Given it is Bobs turn
