@@ -20,21 +20,21 @@ export default class ClientSocketHandler {
     }
 
     loadGame(game) {
-        this.#myGames[game.gameID()].gameLoaded = false;
+        this.#myGames[game.gameID()].masker.preLoadGame();
+        this.#myGames[game.gameID()].actionProvider.preLoadGame();
+        
         for (const event of game.collectEvents()) {
             this.#listener(event);
         }
         this.#socket.emit('gameLoaded', { gameID: game.gameID() });
-        this.#myGames[game.gameID()].gameLoaded = true;
-
-        this.#myGames[game.gameID()].actionProvider.setSendActions(true);
-        this.#myGames[game.gameID()].actionProvider.sendLastActions();
+        
+        this.#myGames[game.gameID()].masker.postLoadGame();
+        this.#myGames[game.gameID()].actionProvider.postLoadGame();
     }
 
     addKnownGame(gameID, playerID) {
         this.#myGames[gameID] = {
             'playerID': playerID,
-            'gameLoaded': false,
             'actionProvider': new ActionProvider(this.#server, this, gameID, playerID),
             'masker': new GameMasker(this.#server, this, gameID, playerID),
         };
@@ -124,6 +124,7 @@ export default class ClientSocketHandler {
 
             if (game != undefined && this.#myGames[gameid].playerID != undefined) {
                 try {
+                    // TODO: This should be somewhat generic for all ClientMiddleware if possible.
                     var target = this.#myGames[gameid].masker.getUnmaskedPlayerID(target);
 
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
@@ -173,8 +174,6 @@ export default class ClientSocketHandler {
 
     handleGameEvent(event) {
         var thisGame = this.#myGames[event.game];
-        var thisGamePlayers = this.#server.getGame(event.game)?.players();
-        var myPlayerMask = thisGame.masker.getMaskedPlayerID(thisGame.playerID);
 
         thisGame.masker.preEmitHandler(event);
         thisGame.actionProvider.preEmitHandler(event);
@@ -183,9 +182,6 @@ export default class ClientSocketHandler {
         this.#socket.emit('handleGameEvent', event);
 
         thisGame.masker.postEmitHandler(event);
-
-        // After some events, we help the game client along with showing it actions it has available to it.
-        // This way the client is light on logic.
         thisGame.actionProvider.postEmitHandler(event);
     }
 }

@@ -12,6 +12,10 @@ export default class ClientMiddleware {
     }
 
     preEmitHandler(event) { }
-
+    
     postEmitHandler(event) { }
+
+    preLoadGame() { }
+
+    postLoadGame() { }
 }

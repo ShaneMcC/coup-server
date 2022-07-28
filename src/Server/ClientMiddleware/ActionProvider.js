@@ -20,11 +20,12 @@ export default class GameMasker extends ClientMiddleware {
         this.#playerID = playerID;
     }
 
-    setSendActions(value) {
-        this.#sendActions = value;
+    preLoadGame() {
+        this.#sendActions = false;
     }
-
-    sendLastActions() {
+    
+    postLoadGame() {
+        this.#sendActions = true;
         this.showActions(this.#lastActions);
     }
 
