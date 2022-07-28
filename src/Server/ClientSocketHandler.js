@@ -1,5 +1,5 @@
-import { Actions as PlayerTurnActions, CounterActions } from "../Game/Actions.js";
-import GameMasker from "./GameMasker.js";
+import GameMasker from "./ClientMiddleware/GameMasker.js";
+import ActionProvider from "./ClientMiddleware/ActionProvider.js";
 
 export default class ClientSocketHandler {
     #socket;
@@ -26,14 +26,16 @@ export default class ClientSocketHandler {
         }
         this.#socket.emit('gameLoaded', { gameID: game.gameID() });
         this.#myGames[game.gameID()].gameLoaded = true;
-        this.showActions(game.gameID(), this.#myGames[game.gameID()].lastActions);
+
+        this.#myGames[game.gameID()].actionProvider.setSendActions(true);
+        this.#myGames[game.gameID()].actionProvider.sendLastActions();
     }
 
     addKnownGame(gameID, playerID) {
         this.#myGames[gameID] = {
             'playerID': playerID,
             'gameLoaded': false,
-            'lastActions': {},
+            'actionProvider': new ActionProvider(this.#server, this, gameID, playerID),
             'masker': new GameMasker(this.#server, this, gameID, playerID),
         };
     }
@@ -122,7 +124,7 @@ export default class ClientSocketHandler {
 
             if (game != undefined && this.#myGames[gameid].playerID != undefined) {
                 try {
-                    var target = thisGame.masker.getUnmaskedPlayerID(target);
+                    var target = this.#myGames[gameid].masker.getUnmaskedPlayerID(target);
 
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
                 } catch (e) {
@@ -165,24 +167,6 @@ export default class ClientSocketHandler {
         }
     }
 
-    showActions(gameid, actions) {
-        var thisGame = this.#myGames[gameid];
-        var myPlayerMask = thisGame.masker.getMaskedPlayerID(thisGame.playerID);
-        thisGame.lastActions = actions;
-
-        // Only actually show actions once the game has loaded.
-        // Saves us sending generated-events that we don't need to.
-        if (thisGame.gameLoaded) {
-            this.#socket.emit('handleGameEvent', {
-                '__type': 'showActions',
-                'game': gameid,
-                'player': myPlayerMask,
-                'date': new Date(),
-                'actions': (actions ? actions : {})
-            });
-        }
-    }
-
     emitEvent(type, ...args) {
         this.#socket.emit(type, ...args);
     }
@@ -193,6 +177,7 @@ export default class ClientSocketHandler {
         var myPlayerMask = thisGame.masker.getMaskedPlayerID(thisGame.playerID);
 
         thisGame.masker.preEmitHandler(event);
+        thisGame.actionProvider.preEmitHandler(event);
 
         // Emit the event.
         this.#socket.emit('handleGameEvent', event);
@@ -201,106 +186,6 @@ export default class ClientSocketHandler {
 
         // After some events, we help the game client along with showing it actions it has available to it.
         // This way the client is light on logic.
-
-        if (event.__type == 'addPlayer' || event.__type == 'removePlayer' || event.__type == 'playerReady' || event.__type == 'playerNotReady') {
-            var pregameActions = {};
-
-            if (thisGamePlayers[thisGame.playerID]) {
-                if (thisGamePlayers[thisGame.playerID].ready) {
-                    pregameActions['UNREADY'] = { name: "Not Ready" };
-                } else {
-                    pregameActions['READY'] = { name: "Ready" };
-                }
-
-                pregameActions['SETNAME'] = { name: 'Change Name', prompt: 'Enter new name' };
-
-                if (Object.values(thisGamePlayers).filter(p => !p.ready).length == 0) {
-                    pregameActions['STARTGAME'] = { name: "Start Game" };
-                }
-            }
-
-            this.showActions(event.game, pregameActions);
-        }
-
-        if (event.__type == 'startGame') {
-            this.showActions(event.game, {});
-        }
-
-        if (event.__type == 'gameOver' || event.__type == 'gameEnded') {
-            this.showActions(event.game, {});
-        }
-
-        if (event.__type == 'beginPlayerTurn') {
-            if (event.player == myPlayerMask) {
-                this.showActions(event.game, PlayerTurnActions);
-            } else {
-                this.showActions(event.game, {});
-            }
-        }
-
-        if (event.__type == 'challengeablePlayerAction' || event.__type == 'counterablePlayerAction') {
-            if (event.player == myPlayerMask || (thisGamePlayers[thisGame.playerID] && thisGamePlayers[thisGame.playerID].influence.length == 0)) {
-                this.showActions(event.game, {});
-            } else {
-                var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };
-
-                if (PlayerTurnActions[event.action].counterActions && (PlayerTurnActions[event.action].anyoneCanCounter || event.target == myPlayerMask)) {
-                    for (const ca of PlayerTurnActions[event.action].counterActions) {
-                        displayActions[ca] = {
-                            name: CounterActions[ca].name,
-                            target: ca,
-                            action: 'COUNTER',
-                        }
-                    }
-                }
-
-                this.showActions(event.game, displayActions);
-            }
-        }
-
-        if (event.__type == 'playerPassed' && event.player == myPlayerMask) {
-            this.showActions(event.game, {});
-        }
-
-        if (event.__type == 'playerChallenged') {
-            if (event.player == myPlayerMask) {
-                this.showActions(event.game, { 'REVEAL': { name: 'Reveal Influence', options: thisGamePlayers[thisGame.playerID].influence } });
-            } else {
-                this.showActions(event.game, {});
-            }
-        }
-
-        if (event.__type == 'playerCountered') {
-            if (event.challenger == myPlayerMask) {
-                this.showActions(event.game, {});
-            } else {
-                var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };
-                this.showActions(event.game, displayActions);
-            }
-        }
-
-        if (event.__type == 'playerMustDiscardInfluence' && event.player != myPlayerMask) {
-            this.showActions(event.game, {});
-        }
-
-        if (event.__type == 'playerPerformedAction' && event.player == myPlayerMask) {
-            this.showActions(event.game, {});
-        }
-
-        if (event.__type == 'playerPassedChallenge' && event.player == myPlayerMask) {
-            this.showActions(event.game, {});
-        }
-
-        if (event.__type == 'playerFailedChallenge' && event.player == myPlayerMask) {
-            this.showActions(event.game, {});
-        }
-
-        if (event.__type == 'playerMustDiscardInfluence' && event.player == myPlayerMask) {
-            this.showActions(event.game, { 'REVEAL': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[thisGame.playerID].influence } });
-        }
-
-        if (event.__type == 'playerExchangingCards' && event.player == myPlayerMask) {
-            this.showActions(event.game, { 'EXCHANGE': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[thisGame.playerID].influence } });
-        }
+        thisGame.actionProvider.postEmitHandler(event);
     }
 }

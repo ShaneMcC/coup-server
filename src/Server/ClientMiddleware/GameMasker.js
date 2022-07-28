@@ -1,6 +1,7 @@
 import Crypto from 'crypto';
+import ClientMiddleware from './ClientMiddleware.js';
 
-export default class GameMasker {
+export default class GameMasker extends ClientMiddleware {
     #server;
     #gameID;
     #socketHandler;
@@ -9,17 +10,13 @@ export default class GameMasker {
     #playerID;
     #playerMasks = {};
 
-    #maskingEnabled = true;
-
     constructor(server, socketHandler, gameID, playerID) {
+        super(server, socketHandler, gameID, playerID);
+
         this.#server = server;
         this.#socketHandler = socketHandler;
         this.#gameID = gameID;
         this.#playerID = playerID;
-    }
-
-    setMaskingEnabled(value) {
-        this.#maskingEnabled = value;
     }
 
     getUnmaskedPlayerID(maskedID) {
@@ -37,7 +34,7 @@ export default class GameMasker {
     }
 
     preEmitHandler(event) {
-        if (!this.#maskingEnabled) { return; }
+        if (!this.enabled()) { return; }
 
         var myPlayerMask = this.getMaskedPlayerID(this.#playerID);
 
@@ -104,7 +101,7 @@ export default class GameMasker {
 
 
     postEmitHandler(event) {
-        if (!this.#maskingEnabled) { return; }
+        if (!this.enabled()) { return; }
 
         var thisGamePlayers = this.#server.getGame(event.game)?.players();
         
