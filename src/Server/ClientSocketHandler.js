@@ -1,5 +1,6 @@
 import { Actions as PlayerTurnActions, CounterActions } from "../Game/Actions.js";
 import Crypto from 'crypto';
+import GameMasker from "./GameMasker.js";
 
 export default class ClientSocketHandler {
     #socket;
@@ -32,9 +33,9 @@ export default class ClientSocketHandler {
     addKnownGame(gameID, playerID) {
         this.#myGames[gameID] = {
             'playerID': playerID,
-            'playerMasks': {},
             'gameLoaded': false,
             'lastActions': {},
+            'masker': new GameMasker(this.#server, gameID, playerID),
         };
     }
 
@@ -122,13 +123,9 @@ export default class ClientSocketHandler {
 
             if (game != undefined && this.#myGames[gameid].playerID != undefined) {
                 try {
-                    var thisGame = this.#myGames[gameid];
-                    var targetPlayerMask = target;
-                    for (const [id, p] of Object.entries(thisGame.playerMasks)) {
-                        if (p == target) { targetPlayerMask = id; break; }
-                    }
+                    var target = thisGame.masker.getUnmaskedPlayerID(target);
 
-                    game.doPlayerAction(this.#myGames[gameid].playerID, action, targetPlayerMask);
+                    game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
                 } catch (e) {
                     this.#socket.emit('actionError', { error: e.message });
                 }
@@ -171,7 +168,7 @@ export default class ClientSocketHandler {
 
     showActions(gameid, actions) {
         var thisGame = this.#myGames[gameid];
-        var myPlayerMask = thisGame.playerMasks[thisGame.playerID] ? thisGame.playerMasks[thisGame.playerID] : thisGame.playerID;
+        var myPlayerMask = thisGame.masker.getMaskedPlayerID(thisGame.playerID);
         thisGame.lastActions = actions;
 
         // Only actually show actions once the game has loaded.
@@ -190,41 +187,9 @@ export default class ClientSocketHandler {
     handleGameEvent(event) {
         var thisGame = this.#myGames[event.game];
         var thisGamePlayers = this.#server.getGame(event.game)?.players();
-        var myPlayerMask = thisGame.playerMasks[thisGame.playerID] ? thisGame.playerMasks[thisGame.playerID] : thisGame.playerID;
+        var myPlayerMask = thisGame.masker.getMaskedPlayerID(thisGame.playerID);
 
-        // Mask player IDs to stop people being able to reconnect as someone else easily.
-        if (event.__type == 'addPlayer') {
-            if (event.id == thisGame.playerID) { event.self = true; }
-
-            // Generate a unique mask for this player.
-            var newMask = '';
-            do {
-                newMask = 'Player-Mask-' + Crypto.randomUUID();
-            } while (Object.values(thisGame.playerMasks).indexOf(newMask) > -1);
-
-            thisGame.playerMasks[event.id] = newMask;
-            event.id = thisGame.playerMasks[event.id];
-        }
-        // Replace player IDs with masked IDs.
-        if (event.player && thisGame.playerMasks[event.player]) {
-            event.player = thisGame.playerMasks[event.player];
-        }
-        if (event.target && thisGame.playerMasks[event.target]) {
-            event.target = thisGame.playerMasks[event.target];
-        }
-        if (event.challenger && thisGame.playerMasks[event.challenger]) {
-            event.challenger = thisGame.playerMasks[event.challenger];
-        }
-        if (event.kickedBy && thisGame.playerMasks[event.kickedBy]) {
-            event.kickedBy = thisGame.playerMasks[event.kickedBy];
-        }
-        if (event.winner && thisGame.playerMasks[event.winner]) {
-            event.winner = thisGame.playerMasks[event.winner];
-        }
-        if (event.__type == 'removePlayer' && thisGame.playerMasks[event.id]) {
-            event.id = thisGame.playerMasks[event.id];
-            delete thisGame.playerMasks[event.id];
-        }
+        thisGame.masker.maskEvent(event);
 
         // Hide Deck from players, and keep track of it ourself to deal with allocateNextInfluence
         if (event.__type == 'setDeck') {
@@ -290,7 +255,7 @@ export default class ClientSocketHandler {
                 this.#socket.emit('handleGameEvent', {
                     '__type': 'showPlayerInfluence',
                     'game': event.game,
-                    'player': thisGame.playerMasks[pid] ? thisGame.playerMasks[pid] : pid,
+                    'player': thisGame.masker.getMaskedPlayerID(pid),
                     'date': event.date,
                     'influence': player.influence
                 });
