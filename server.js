@@ -8,6 +8,9 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
 
+import gitDescPkg from 'git-describe';
+const { gitDescribeSync } = gitDescPkg;
+
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -24,6 +27,7 @@ const $appConfig = {
     persistGames: getBoolOrDefault(process.env.PERSISTGAMES, false),
     testGames: getBoolOrDefault(process.env.TESTGAMES, false),
     saveLocation: process.env.SAVELOCATION || __dirname + '/gamedata/',
+    gitVersion: gitDescribeSync(__dirname, { requireAnnotated: false, match: '*'}).raw,
 }
 
 var gs = new GameServer($appConfig);
