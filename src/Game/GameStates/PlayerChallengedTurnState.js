@@ -97,6 +97,7 @@ export default class PlayerChallengedTurnState extends GameState {
             } else {
                 this.game.emit('playerFailedChallenge', { 'player': this.player.id, 'influence': target });
             }
+            // Note, the revealed influence will be discarded by processAction();
 
             // Continue with the action if we don't need to wait for anything else.
             // (ie, if we didn't end up requiring a player to discard influence.)

@@ -130,6 +130,7 @@ export default class GameServer {
         if (fs.existsSync(this.appConfig.saveLocation)) {
             var gameFile = this.appConfig.saveLocation + '/' + gameID + '.json';
             fs.unlinkSync(gameFile);
+            return true;
         }
 
         return false;
