@@ -50,14 +50,7 @@ if ($appConfig.persistGames) {
     // Load all the saved games...
     for (const gameid in gs.getSavedGames()) {
         console.log(`Loading saved game: ${gameid}`);
-
         gs.loadGame(gameid);
-        var game = gs.getGame(gameid);
-
-        if (game.ended) {
-            console.log(`\tGame ended. Removing.`);
-            gs.removeGame(gameid);
-        }
     }
 
     // Add handler for when we're exiting to try and save the games...
