@@ -3,7 +3,14 @@ WORKDIR /app
 COPY ./package.json ./package-lock.json /app/
 RUN npm install
 
-FROM install AS run
+COPY . /gitRepo
+ADD docker/jq /bin/jq
+ADD docker/addGitVersion.sh /tmp/addGitVersion.sh
+RUN /tmp/addGitVersion.sh
+
+FROM node:latest AS run
+WORKDIR /app
+COPY --from=install /app/ /app/
 COPY server.js /app/
 COPY src /app/src
 

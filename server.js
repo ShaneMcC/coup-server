@@ -2,14 +2,12 @@
 
 import GameServer from './src/Server/GameServer.js';
 import Crypto from 'crypto';
+import fs from 'fs';
 import process from 'process';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
-
-import gitDescPkg from 'git-describe';
-const { gitDescribeSync } = gitDescPkg;
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -27,8 +25,14 @@ const $appConfig = {
     persistGames: getBoolOrDefault(process.env.PERSISTGAMES, false),
     testGames: getBoolOrDefault(process.env.TESTGAMES, false),
     saveLocation: process.env.SAVELOCATION || __dirname + '/gamedata/',
-    gitVersion: gitDescribeSync(__dirname, { requireAnnotated: false, match: '*'}).raw,
+    buildConfig: { gitVersion: "Unknown" },
 }
+
+if (fs.existsSync(__dirname + '/buildConfig.json')) {
+    $appConfig.buildConfig = JSON.parse(fs.readFileSync(__dirname + '/buildConfig.json'));
+}
+
+console.log('App Config: ', $appConfig);
 
 var gs = new GameServer($appConfig);
 
