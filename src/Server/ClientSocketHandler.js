@@ -1,5 +1,4 @@
 import { Actions as PlayerTurnActions, CounterActions } from "../Game/Actions.js";
-import Crypto from 'crypto';
 import GameMasker from "./GameMasker.js";
 
 export default class ClientSocketHandler {
@@ -35,7 +34,7 @@ export default class ClientSocketHandler {
             'playerID': playerID,
             'gameLoaded': false,
             'lastActions': {},
-            'masker': new GameMasker(this.#server, gameID, playerID),
+            'masker': new GameMasker(this.#server, this, gameID, playerID),
         };
     }
 
@@ -184,41 +183,21 @@ export default class ClientSocketHandler {
         }
     }
 
+    emitEvent(type, ...args) {
+        this.#socket.emit(type, ...args);
+    }
+
     handleGameEvent(event) {
         var thisGame = this.#myGames[event.game];
         var thisGamePlayers = this.#server.getGame(event.game)?.players();
         var myPlayerMask = thisGame.masker.getMaskedPlayerID(thisGame.playerID);
 
-        thisGame.masker.maskEvent(event);
-
-        // Hide Deck from players, and keep track of it ourself to deal with allocateNextInfluence
-        if (event.__type == 'setDeck') {
-            thisGame['deck'] = event.deck;
-
-            event.deck = Array(event.deck.length - 1).fill("UNKNOWN");
-        }
-
-        // Modify allocateNextInfluence to actually be useful for the client if it is us
-        // or hide it otherwise.
-        if (event.__type == 'allocateNextInfluence') {
-            var influence = thisGame['deck'].shift();
-
-            event.__type = 'allocateInfluence';
-
-            if (event.player == myPlayerMask) {
-                event.influence = influence;
-            } else {
-                event.influence = 'UNKNOWN';
-            }
-        }
-
-        // Hide re-decked influences.
-        if (event.__type == 'returnInfluenceToDeck' && event.player != myPlayerMask) {
-            event.influence = 'UNKNOWN';
-        }
+        thisGame.masker.preEmitHandler(event);
 
         // Emit the event.
         this.#socket.emit('handleGameEvent', event);
+
+        thisGame.masker.postEmitHandler(event);
 
         // After some events, we help the game client along with showing it actions it has available to it.
         // This way the client is light on logic.
@@ -249,25 +228,6 @@ export default class ClientSocketHandler {
 
         if (event.__type == 'gameOver' || event.__type == 'gameEnded') {
             this.showActions(event.game, {});
-
-            // Reveal all player influences that we hid earlier.
-            for (const [pid, player] of Object.entries(thisGamePlayers)) {
-                this.#socket.emit('handleGameEvent', {
-                    '__type': 'showPlayerInfluence',
-                    'game': event.game,
-                    'player': thisGame.masker.getMaskedPlayerID(pid),
-                    'date': event.date,
-                    'influence': player.influence
-                });
-            }
-            
-            // And the deck.
-            this.#socket.emit('handleGameEvent', {
-                '__type': 'setDeck',
-                'game': event.game,
-                'date': event.date,
-                'deck': thisGame['deck'],
-            });
         }
 
         if (event.__type == 'beginPlayerTurn') {

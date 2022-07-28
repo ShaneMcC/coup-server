@@ -3,13 +3,23 @@ import Crypto from 'crypto';
 export default class GameMasker {
     #server;
     #gameID;
+    #socketHandler;
+
+    #gameDeck = [];
     #playerID;
     #playerMasks = {};
 
-    constructor(server, gameID, playerID) {
+    #maskingEnabled = true;
+
+    constructor(server, socketHandler, gameID, playerID) {
         this.#server = server;
+        this.#socketHandler = socketHandler;
         this.#gameID = gameID;
         this.#playerID = playerID;
+    }
+
+    setMaskingEnabled(value) {
+        this.#maskingEnabled = value;
     }
 
     getUnmaskedPlayerID(maskedID) {
@@ -26,7 +36,11 @@ export default class GameMasker {
         return this.#playerMasks[playerID] ? this.#playerMasks[playerID] : playerID;
     }
 
-    maskEvent(event) {
+    preEmitHandler(event) {
+        if (!this.#maskingEnabled) { return; }
+
+        var myPlayerMask = this.getMaskedPlayerID(this.#playerID);
+
         // Mask player IDs to stop people being able to reconnect as someone else easily.
         if (event.__type == 'addPlayer') {
             if (event.id == this.#playerID) { event.self = true; }
@@ -60,5 +74,60 @@ export default class GameMasker {
             event.id = this.#playerMasks[event.id];
             delete this.#playerMasks[event.id];
         }
+
+        // Hide Deck from players, and keep track of it ourself to deal with allocateNextInfluence
+        if (event.__type == 'setDeck') {
+            this.#gameDeck = event.deck;
+
+            event.deck = Array(event.deck.length - 1).fill("UNKNOWN");
+        }
+
+        // Modify allocateNextInfluence to actually be useful for the client if it is us
+        // or hide it otherwise.
+        if (event.__type == 'allocateNextInfluence') {
+            var influence = this.#gameDeck.shift();
+
+            event.__type = 'allocateInfluence';
+
+            if (event.player == myPlayerMask) {
+                event.influence = influence;
+            } else {
+                event.influence = 'UNKNOWN';
+            }
+        }
+
+        // Hide re-decked influences.
+        if (event.__type == 'returnInfluenceToDeck' && event.player != myPlayerMask) {
+            event.influence = 'UNKNOWN';
+        }
+    }
+
+
+    postEmitHandler(event) {
+        if (!this.#maskingEnabled) { return; }
+
+        var thisGamePlayers = this.#server.getGame(event.game)?.players();
+        
+        if (event.__type == 'gameOver' || event.__type == 'gameEnded') {
+            // Reveal all player influences that we hid earlier.
+            for (const [pid, player] of Object.entries(thisGamePlayers)) {
+                this.#socketHandler.emitEvent('handleGameEvent', {
+                    '__type': 'showPlayerInfluence',
+                    'game': event.game,
+                    'player': this.getMaskedPlayerID(pid),
+                    'date': event.date,
+                    'influence': player.influence
+                });
+            }
+            
+            // And the deck.
+            this.#socketHandler.emitEvent('handleGameEvent', {
+                '__type': 'setDeck',
+                'game': event.game,
+                'date': event.date,
+                'deck': this.#gameDeck,
+            });
+        }
+
     }
 }
