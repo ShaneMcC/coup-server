@@ -19,24 +19,30 @@ export default class GameMasker extends ClientMiddleware {
         this.#playerID = playerID;
     }
 
-    getUnmaskedPlayerID(maskedID) {
+    getActionTarget(action, target) {
+        // TODO: We should maybe know what specific actions we care about to actually de-mask
+        // rather than doing it for all possible targets.
+        //
+        // but for now these are the ones that take arbitrary input that could allow unmasking.
+        if (action == 'CHAT' || action == 'SETNAME') { return [action, target]; }
+
         for (const [id, p] of Object.entries(this.#playerMasks)) {
-            if (p == maskedID) {
-                return id;
+            if (p == target) {
+                return [action, id];
             }
         }
         
-        return maskedID;
+        return [action, target];
     }
 
-    getMaskedPlayerID(playerID) {
+    #getMaskedPlayerID(playerID) {
         return this.#playerMasks[playerID] ? this.#playerMasks[playerID] : playerID;
     }
 
     preEmitHandler(event) {
         if (!this.enabled()) { return; }
 
-        var myPlayerMask = this.getMaskedPlayerID(this.#playerID);
+        var myPlayerMask = this.#getMaskedPlayerID(this.#playerID);
 
         // Mask player IDs to stop people being able to reconnect as someone else easily.
         if (event.__type == 'addPlayer') {
@@ -111,7 +117,7 @@ export default class GameMasker extends ClientMiddleware {
                 this.#socketHandler.emitEvent('handleGameEvent', {
                     '__type': 'showPlayerInfluence',
                     'game': event.game,
-                    'player': this.getMaskedPlayerID(pid),
+                    'player': this.#getMaskedPlayerID(pid),
                     'date': event.date,
                     'influence': player.influence
                 });

@@ -124,8 +124,8 @@ export default class ClientSocketHandler {
 
             if (game != undefined && this.#myGames[gameid].playerID != undefined) {
                 try {
-                    // TODO: This should be somewhat generic for all ClientMiddleware if possible.
-                    var target = this.#myGames[gameid].masker.getUnmaskedPlayerID(target);
+                    [action, target] = this.#myGames[gameid].masker.getActionTarget(action, target);
+                    [action, target] = this.#myGames[gameid].actionProvider.getActionTarget(action, target);
 
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
                 } catch (e) {

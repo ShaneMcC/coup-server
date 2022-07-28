@@ -11,6 +11,8 @@ export default class ClientMiddleware {
         return this.#enabled;
     }
 
+    getActionTarget(action, target) { return [action, target]; }
+
     preEmitHandler(event) { }
     
     postEmitHandler(event) { }
