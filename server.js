@@ -64,7 +64,6 @@ if ($appConfig.persistGames) {
     process.on('exit', saveAllGames);
 }
 
-
 function exitHandler(code) {
     console.log(`Exiting: ${code}`);
     process.exit(code);
