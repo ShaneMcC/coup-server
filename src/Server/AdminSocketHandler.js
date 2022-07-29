@@ -193,6 +193,13 @@ export default class AdminSocketHandler {
             doAllAction('refreshAllGames', gameId => this.#server.refreshGame(gameId));
         });
 
+        this.#socket.on('sendGlobalAdminMessage', (message) => {
+            doAllAction('sendGlobalAdminMessage', gameId => {
+                this.#server.getGame(gameId).adminMessage(message);
+                return true;
+            });
+        });
+
         this.#socket.on('killServer', () => {
             this.#socket.emit('success', { message: 'Server is exiting.' });
             process.exit(0);
