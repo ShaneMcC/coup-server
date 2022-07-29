@@ -112,7 +112,9 @@ export default class GameServer {
             for (const socket of Object.values(this.#sockets).filter(s => s.type == 'client')) {
                 socket.handler.refreshGame(gameID);
             }
+            return true;
         }
+        return false;
     }
 
     removeGame(gameID) {
@@ -124,9 +126,11 @@ export default class GameServer {
             for (const socket of Object.values(this.#sockets).filter(s => s.type == 'client')) {
                 socket.handler.gameRemoved(gameID);
             }
-        }
 
-        delete this.#games[gameID];
+            delete this.#games[gameID];
+            return true;
+        }
+        return false;
     }
 
     removeSaveGame(gameID) {

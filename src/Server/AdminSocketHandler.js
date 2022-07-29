@@ -81,15 +81,12 @@ export default class AdminSocketHandler {
             var failed = [];
 
             for (const gameId in (savedGames ? this.#server.getSavedGames() : this.#server.getAvailableGames())) {
-                console.log(`${action} on ${gameId}`);
-
                 try {
                     if (!callback(gameId)) {
                         throw new Error('Error in callback');
                     };
                     success.push(gameId);
                 } catch (e) {
-                    console.log(`E: ${e}`);
                     failed.push(gameId);
                 }
             }
