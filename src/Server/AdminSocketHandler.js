@@ -76,47 +76,69 @@ export default class AdminSocketHandler {
             this.#server.refreshGame(gameId);
         });
 
-        this.#socket.on('collectGameEvents', (gameId) => {
+        const doAllAction = (action, callback, savedGames) => {
+            var success = [];
+            var failed = [];
+
+            for (const gameId in (savedGames ? this.#server.getSavedGames() : this.#server.getAvailableGames())) {
+                console.log(`${action} on ${gameId}`);
+
+                try {
+                    if (!callback(gameId)) {
+                        throw new Error('Error in callback');
+                    };
+                    success.push(gameId);
+                } catch (e) {
+                    console.log(`E: ${e}`);
+                    failed.push(gameId);
+                }
+            }
+
+            if (success.length > 0) { this.#socket.emit('success', { message: `${action} success: ${JSON.stringify(success)}` }); }
+            if (failed.length > 0) { this.#socket.emit('error', { error: `${action} failed: ${JSON.stringify(failed)}` }); }
+
+            this.doListGames();
+        }
+
+        const requireValidGame = (gameId, callback) => {
             var game = this.#server.getGame(gameId);
 
             if (game != undefined) {
-                this.#socket.emit('gameEventsCollected', { game: gameId, events: game.collectEvents() });
-                this.#socket.emit('success', { message: `${gameId} events collected.` });
+                callback(game);
             } else {
                 this.#socket.emit('error', { error: `${gameId} does not exist.` });
             }
+        }
+
+        this.#socket.on('collectGameEvents', (gameId) => {
+            requireValidGame(gameId, (game) => {
+                this.#socket.emit('gameEventsCollected', { game: gameId, events: game.collectEvents() });
+                this.#socket.emit('success', { message: `${gameId} events collected.` });
+            });
         });
 
         this.#socket.on('sendAdminMessage', (gameId, message) => {
-            var game = this.#server.getGame(gameId);
-
-            if (game != undefined) {
+            requireValidGame(gameId, (game) => {
                 this.#socket.emit('success', { message: `Message was sent to: ${gameId}` });
                 game.adminMessage(message);
-            } else {
-                this.#socket.emit('error', { error: `${gameId} does not exist.` });
-            }
+            });
         });
 
         this.#socket.on('endGame', (gameId, reason) => {
-            var game = this.#server.getGame(gameId);
-
-            if (game != undefined) {
+            requireValidGame(gameId, (game) => {
                 this.#socket.emit('success', { message: `${gameId} was ended.` });
                 game.endGame(reason ? `Ended by admin: ${reason}` : 'Ended by admin.');
                 this.doListGames();
-            }
+            });
         });
 
         this.#socket.on('killGame', (gameId, reason) => {
-            var game = this.#server.getGame(gameId);
-
-            if (game != undefined) {
+            requireValidGame(gameId, (game) => {
                 this.#socket.emit('success', { message: `${gameId} was killed.` });
                 game.endGame(reason ? `Killed by admin: ${reason}` : 'Killed by admin.');
                 this.#server.removeGame(gameId);
                 this.doListGames();
-            }
+            });
         });
 
         this.#socket.on('saveGame', (gameId) => {
@@ -154,19 +176,24 @@ export default class AdminSocketHandler {
         });
 
         this.#socket.on('saveAllGames', () => {
-            this.#socket.emit('error', { error: 'saveAllGames not supported.' });
+            doAllAction('saveAllGames', gameId => this.#server.saveGame(gameId));
         });
 
         this.#socket.on('loadAllGames', () => {
-            this.#socket.emit('error', { error: 'loadAllGames not supported.' });
+            doAllAction('loadAllGames', gameId => this.#server.loadGame(gameId), true);
         });
 
-        this.#socket.on('killAllGames', () => {
-            this.#socket.emit('error', { error: 'killAllGames not supported.' });
+        this.#socket.on('killAllGames', (reason) => {
+            doAllAction('killAllGames', gameId => {
+                var game = this.#server.getGame(gameId);
+                game.endGame(reason ? `Killed by admin: ${reason}` : 'Killed by admin.');
+                this.#server.removeGame(gameId);
+                return true;
+            });
         });
 
         this.#socket.on('refreshAllGames', () => {
-            this.#socket.emit('error', { error: 'refreshAllGames not supported.' });
+            doAllAction('refreshAllGames', gameId => this.#server.refreshGame(gameId));
         });
 
         this.#socket.on('killServer', () => {
@@ -180,21 +207,17 @@ export default class AdminSocketHandler {
         });
 
         this.#socket.on('adminAction', (gameid, playerid, action, target) => {
-            var game = this.#server.getGame(gameid);
-
-            if (game != undefined) {
+            requireValidGame(gameId, (game) => {
                 try {
                     game.doPlayerAction(playerid, action, target);
                 } catch (e) {
                     this.#socket.emit('error', { error: e.message });
                 }
-            }
+            });
         });
 
         this.#socket.on('adminEmitEvent', (gameid, event) => {
-            var game = this.#server.getGame(gameid);
-
-            if (game != undefined) {
+            requireValidGame(gameId, (game) => {
                 try {
                     // Weird use of hydrate, but should work.
                     game.hydrate([event]);
@@ -202,7 +225,7 @@ export default class AdminSocketHandler {
                 } catch (e) {
                     this.#socket.emit('error', { error: e.message });
                 }
-            }
+            });
         });
     }
 }
