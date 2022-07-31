@@ -7,6 +7,10 @@ export default {
     'counterActions': ['BLOCK_ASSASSINATE'],
 
     process(game, player, target) {
-        game.emit('playerMustDiscardInfluence', {player: target.id, reason: 'Assassination'}); 
+        if (target.influence.length > 0) {
+            game.emit('playerMustDiscardInfluence', { player: target.id, reason: 'Assassination' });
+        } else {
+            game.emit('playerHasNoInfluenceToDiscard', { player: target.id, reason: 'Assassination' });
+        }
     },
 }
