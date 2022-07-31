@@ -134,6 +134,25 @@ export default class ClientSocketHandler {
             }
         });
 
+        this.#socket.on('getNextGame', (gameid) => {
+            var game = this.#server.getGame(gameid);
+
+            if (game != undefined) {
+                var newGame = game.nextGameID();
+                if (newGame == undefined) {
+                    if (this.#server.appConfig.publicGames) {
+                        newGame = this.#server.createGame();
+                        game.nextGameAvailable(gameid);
+                    } else {
+                        this.#socket.emit('error', { error: 'Game creation is disabled.' });
+                        return
+                    }
+                }
+
+                this.#socket.emit('newGameCreated', { game: newGame.gameID() });
+            }
+        });
+
         this.#socket.on('disconnect', () => {
             for (const [gameid, info] of Object.entries(this.#myGames)) {
                 var game = this.#server.getGame(gameid);

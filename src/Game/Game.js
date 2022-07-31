@@ -22,6 +22,7 @@ export default class Game {
     state = new NewGameState(this);
 
     #gameID = '';
+    #nextGameID = '';
 
     started = false;
     ended = false;
@@ -38,15 +39,25 @@ export default class Game {
 
     createGame(gameid) {
         if (gameid == undefined) { gameid = Crypto.randomUUID(); }
-        this.emit('gameCreated', {game: gameid});
+        this.emit('gameCreated', { game: gameid });
     }
 
     endGame(reason) {
-        this.emit('gameEnded', {reason: reason});
+        this.emit('gameEnded', { reason: reason });
     }
 
     gameID() {
         return this.#gameID;
+    }
+
+    nextGameID() {
+        return this.#nextGameID;
+    }
+
+    nextGameAvailable(gameid) {
+        if (gameid != undefined) {
+            this.emit('nextGameAvailable', { game: gameid });
+        }
     }
 
     hydrate(events) {
@@ -81,7 +92,7 @@ export default class Game {
             playerID = Crypto.randomUUID();
         } while (this.#players[playerID]);
 
-        this.emit('addPlayer', {'id': playerID, 'name': name});
+        this.emit('addPlayer', { 'id': playerID, 'name': name });
 
         return playerID;
     }
@@ -89,12 +100,12 @@ export default class Game {
     removePlayer(playerID, reason) {
         if (this.started) { return false; }
 
-        this.emit('removePlayer', {'id': playerID, 'reason': reason});
+        this.emit('removePlayer', { 'id': playerID, 'reason': reason });
     }
 
     doPlayerAction(playerid, action, target) {
         this.log('Player Action: ', [playerid, action, target])
-        
+
         if (action == 'CHAT') {
             if (!this.#players[playerid]) {
                 return [false, 'Player is not in this game.'];
@@ -164,9 +175,9 @@ export default class Game {
         }
 
         if (validPlayers == 1) {
-            this.emit('gameOver', {'winner': this.currentPlayerID()});
+            this.emit('gameOver', { 'winner': this.currentPlayerID() });
         } else {
-            this.emit('beginPlayerTurn', {'player': this.currentPlayerID()});
+            this.emit('beginPlayerTurn', { 'player': this.currentPlayerID() });
         }
     }
 
@@ -175,15 +186,15 @@ export default class Game {
     }
 
     adminMessage(message) {
-        this.emit('adminMessage', {message: message});
+        this.emit('adminMessage', { message: message });
     }
 
     serverMessage(message) {
-        this.emit('serverMessage', {message: message});
+        this.emit('serverMessage', { message: message });
     }
 
     chatMessage(playerid, message) {
-        this.emit('chatMessage', {player: playerid, message: message});
+        this.emit('chatMessage', { player: playerid, message: message });
     }
 
     addHandlers() {
@@ -193,8 +204,8 @@ export default class Game {
         });
 
         this.#gameEvents.on('addPlayer', event => {
-            this.#players[event.id] = {'id': event.id, 'name': event.name, 'coins': 0, 'influence': []};
-            
+            this.#players[event.id] = { 'id': event.id, 'name': event.name, 'coins': 0, 'influence': [] };
+
             this.#playerIDs.push(event.id);
         });
 
@@ -309,6 +320,10 @@ export default class Game {
         this.#gameEvents.on('gameEnded', event => {
             this.state = new GameOverState(this, event);
             this.ended = true;
+        });
+
+        this.#gameEvents.on('nextGameAvailable', event => {
+            this.#nextGameID = event.gameid;
         });
     }
 }
