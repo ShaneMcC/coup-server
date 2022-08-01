@@ -22,7 +22,7 @@ export default class Game {
     state = new NewGameState(this);
 
     #gameID = '';
-    #nextGameID = '';
+    #nextGameID = undefined;
 
     started = false;
     ended = false;
@@ -56,7 +56,7 @@ export default class Game {
 
     nextGameAvailable(gameid) {
         if (gameid != undefined) {
-            this.emit('nextGameAvailable', { game: gameid });
+            this.emit('nextGameAvailable', { nextGameID: gameid });
         }
     }
 
@@ -323,7 +323,7 @@ export default class Game {
         });
 
         this.#gameEvents.on('nextGameAvailable', event => {
-            this.#nextGameID = event.gameid;
+            this.#nextGameID = event.nextGameID;
         });
     }
 }

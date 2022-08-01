@@ -141,15 +141,15 @@ export default class ClientSocketHandler {
                 var newGame = game.nextGameID();
                 if (newGame == undefined) {
                     if (this.#server.appConfig.publicGames) {
-                        newGame = this.#server.createGame();
-                        game.nextGameAvailable(gameid);
+                        var newGame = this.#server.createGame().gameID();
+                        game.nextGameAvailable(newGame);
                     } else {
                         this.#socket.emit('error', { error: 'Game creation is disabled.' });
                         return
                     }
                 }
 
-                this.#socket.emit('newGameCreated', { game: newGame.gameID() });
+                this.#socket.emit('foundNextGame', { nextGameID: newGame });
             }
         });
 
