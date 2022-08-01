@@ -151,8 +151,16 @@ export default class GameMasker extends ClientMiddleware {
             this.showActions({ 'REVEAL': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[this.#playerID].influence } });
         }
 
-        if (event.__type == 'playerExchangingCards' && event.player == this.#myPlayerMask) {
+        if (event.__type == 'playerFinishedDiscardingInfluence' && event.player == this.#myPlayerMask) {
+            this.showActions({});
+        }
+
+        if (event.__type == 'playerExchangingCards') {
             this.showActions({ 'EXCHANGE': { name: 'Discard Influence', oneTime: true, options: thisGamePlayers[this.#playerID].influence } });
+        }
+
+        if (event.__type == 'playerFinishedExchangingCards' && event.player == this.#myPlayerMask) {
+            this.showActions({});
         }
     }
 }

@@ -24,7 +24,7 @@ export default class PlayerExchangingCardsTurnState extends GameState {
         }
         
         if (playerid != this.player.id) {
-            return [false, 'Player does not need to exchange cards influence.'];
+            return [false, 'Player does not need to exchange cards.'];
         }
 
         if (action == "EXCHANGE") {
@@ -36,6 +36,8 @@ export default class PlayerExchangingCardsTurnState extends GameState {
             this.#count++;
 
             if (this.#count == this.#exchangesRequired) {
+                this.game.emit('playerFinishedExchangingCards', { 'player': this.player.id });
+
                 // Shuffle the deck and continue the next turn
                 this.game.emit('setDeck', { 'deck': this.game.getShuffledDeck(this.game.getGameDeck()) });
                 this.game.startNextTurn();
