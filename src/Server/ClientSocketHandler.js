@@ -119,6 +119,19 @@ export default class ClientSocketHandler {
             }
         });
 
+        this.#socket.on('exitGame', (id) => {
+            var game = this.#server.getGame(id);
+
+            if (game != undefined) {
+                delete this.#myGames[id];
+                this.#socket.emit('gameExited', { gameID: id });
+                game.unlisten(this.#listener);
+            } else {
+                this.#socket.emit('commandError', { error: 'Invalid game.' });
+                this.#socket.emit('extFailed', { gameID: id });
+            }
+        });
+
         this.#socket.on('action', (gameid, action, target) => {
             var game = this.#server.getGame(gameid);
 
