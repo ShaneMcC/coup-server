@@ -7,6 +7,8 @@ export default class ChallengeTurnState extends GameState {
     target;
     previousState;
     waitingFor;
+    required;
+    counterOnly = false;
 
     #hasProcessed = false;
 
@@ -18,10 +20,14 @@ export default class ChallengeTurnState extends GameState {
         this.previousState = previousState;
 
         this.waitingFor = {};
+        this.required = {};
         for (const [playerID, p] of Object.entries(this.game.players())) {
             // Only allow players who are alive and not the active player to challenge/pass
             if (p.influence.length > 0 && playerID != this.player.id) {
                 this.waitingFor[playerID] = true;
+                if (Actions[this.action] && ((this.target && this.target.id == playerID) || Actions[this.action].anyoneCanCounter)) {
+                    this.required[playerID] = true;
+                }
             }
         }
 
@@ -33,6 +39,12 @@ export default class ChallengeTurnState extends GameState {
     }
 
     processAction() {
+        if (Object.keys(this.required).length > 0) {
+            this.game.emit('playerActionStillCounterable', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'players': Object.keys(this.required) });
+            this.game.state = this;
+            return;
+        }
+
         if (this.#hasProcessed) { return; }
         this.#hasProcessed = true;
 
@@ -67,6 +79,7 @@ export default class ChallengeTurnState extends GameState {
 
             // TODO: Some of this tracking should be in Game maybe?
             delete this.waitingFor[playerid];
+            delete this.required[playerid];
 
             if (Object.entries(this.waitingFor).length == 0) {
                 this.processAction();
@@ -80,17 +93,31 @@ export default class ChallengeTurnState extends GameState {
             return [true, ''];
         }
 
-        if (action == "CHALLENGE" && Actions[this.action] && Actions[this.action].canChallenge) {
+        if (action == "CHALLENGE" && !this.counterOnly && Actions[this.action] && Actions[this.action].canChallenge) {
+            delete this.waitingFor[playerid];
+            delete this.required[playerid];
+            this.counterOnly = true;
+
             this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid });
             return [true, ''];
         }
 
-        if (action == "CHALLENGE" && CounterActions[this.action]) {
+        if (action == "CHALLENGE" && !this.counterOnly && CounterActions[this.action]) {
+            delete this.waitingFor[playerid];
+            delete this.required[playerid];
+            this.counterOnly = true;
+
             this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid });
             return [true, ''];
         }
 
         if (action == "COUNTER" && Actions[this.action] && ((this.target && this.target.id == playerid) || Actions[this.action].anyoneCanCounter) && Actions[this.action].counterActions && Actions[this.action].counterActions.indexOf(target) > -1) {
+            delete this.waitingFor[playerid];
+            delete this.required[playerid];
+
+            // Only 1 player can counter, I think.
+            this.required = {};
+
             this.game.emit('playerCountered', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid, 'counter': target });
             return [true, ''];
         }

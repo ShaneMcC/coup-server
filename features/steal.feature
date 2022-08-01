@@ -73,3 +73,18 @@ Feature: Can a player claim Steal correctly?
     Then Alice has 2 coins remaining
     And Charlie has 2 coins remaining
     And Bob is the current player
+
+  Scenario: Bob can still counter a steal from charlie after alice challenges them and they revealed their captain
+    When it is Charlies turn
+    When Charlie wants to claim STEAL on Bob
+    And Alice challenges
+    And Charlie reveals Captain
+    And Alice reveals Assassin
+    Then Bob counters with BLOCK_STEAL_WITH_CAPTAIN
+    And all players pass
+    Then Alice is the current player
+    And Alice has 2 coins remaining
+    And Bob has 2 coins remaining
+    And Charlie has 2 coins remaining
+    And Charlie has 2 influence remaining
+    And Alice has 1 influence remaining

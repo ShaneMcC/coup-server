@@ -51,9 +51,53 @@ Feature: Can a player assassinate correctly?
     And Bob challenges
     Then Alice reveals Assassin
     Then Bob reveals Duke
+     And Charlie passes
     Then Charlie reveals Contessa
     Then Bob is the current player
     And Charlie has 1 influence remaining
+    And Bob has 1 influence remaining
+    And Alice has 2 influence remaining
+    And Alice has 2 coins remaining
+
+  Scenario: Alice wants to Assassinate Charlie and gets challenged by Bob and then Charlie Counters.
+    When Alice wants to claim ASSASSINATE on Charlie
+    And Bob challenges
+    Then Alice reveals Assassin
+    Then Bob reveals Duke
+    And Charlie counters with BLOCK_ASSASSINATE
+    And all players pass
+    Then Bob is the current player
+    And Charlie has 2 influence remaining
+    And Bob has 1 influence remaining
+    And Alice has 2 influence remaining
+    And Alice has 2 coins remaining
+
+  Scenario: Alice wants to Assassinate Charlie and gets challenged by Bob and then Charlie Counters and is challenged successfully.
+    When Alice wants to claim ASSASSINATE on Charlie
+    And Bob challenges
+    Then Alice reveals Assassin
+    Then Bob reveals Duke
+    And Charlie counters with BLOCK_ASSASSINATE
+    And Alice challenges
+    And Charlie reveals Contessa
+    And Alice reveals Ambassador
+    Then Bob is the current player
+    And Charlie has 2 influence remaining
+    And Bob has 1 influence remaining
+    And Alice has 1 influence remaining
+    And Alice has 2 coins remaining
+
+  Scenario: Alice wants to Assassinate Charlie and gets challenged by Bob and then Charlie Counters and is challenged unsuccessfully.
+    When Alice wants to claim ASSASSINATE on Charlie
+    And Bob challenges
+    Then Alice reveals Assassin
+    Then Bob reveals Duke
+    And Charlie counters with BLOCK_ASSASSINATE
+    And Alice challenges
+    And Charlie reveals Captain
+    And Charlie reveals Contessa
+    Then Bob is the current player
+    And Charlie has 0 influence remaining
     And Bob has 1 influence remaining
     And Alice has 2 influence remaining
     And Alice has 2 coins remaining
