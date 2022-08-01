@@ -32,6 +32,7 @@ Feature: Can a player claim Foreign Aid correctly?
     When Charlie counters with BLOCK_FOREIGN_AID
     When Bob challenges
     Then Charlie reveals CAPTAIN
+    When Bob passes
     Then the GameEvents contain the following:
       | __type                | player  |
       | playerFailedChallenge | Charlie |

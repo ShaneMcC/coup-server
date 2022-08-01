@@ -115,8 +115,14 @@ export default class ChallengeTurnState extends GameState {
             delete this.waitingFor[playerid];
             delete this.required[playerid];
 
-            // Only 1 player can counter, I think.
-            this.required = {};
+            // Technically we should collect all the COUNTER claims, then allow challenging them 
+            // as a whole, not a one-by-one thing like we do here.
+            // 
+            // But this will require a bit more reworking, so for now lets do it this way
+            // and allow others to continue to counter if the first fails.
+            // 
+            // https://boardgamegeek.com/filepage/86105/action-resolution-order-flowchart
+            // https://boardgamegeek.com/thread/1059909/multiple-counters-foreign-aid
 
             this.game.emit('playerCountered', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid, 'counter': target });
             return [true, ''];

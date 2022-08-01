@@ -23,7 +23,7 @@ export default class GameMasker extends ClientMiddleware {
     preLoadGame() {
         this.#sendActions = false;
     }
-    
+
     postLoadGame() {
         this.#sendActions = true;
         this.showActions(this.#lastActions);
@@ -90,11 +90,15 @@ export default class GameMasker extends ClientMiddleware {
             }
         }
 
-        if (event.__type == 'challengeablePlayerAction' || event.__type == 'counterablePlayerAction') {
+        if (event.__type == 'challengeablePlayerAction' || event.__type == 'counterablePlayerAction' || event.__type == 'playerActionStillCounterable') {
             if (event.player == this.#myPlayerMask || (thisGamePlayers[this.#playerID] && thisGamePlayers[this.#playerID].influence.length == 0)) {
                 this.showActions({});
             } else {
-                var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };
+                var displayActions = {}
+                if (event.__type == 'challengeablePlayerAction' || event.__type == 'counterablePlayerAction') {
+                    displayActions['CHALLENGE'] = { name: 'Challenge' };
+                    displayActions['PASS'] = { name: 'Allow' };
+                }
 
                 if (PlayerTurnActions[event.action].counterActions && (PlayerTurnActions[event.action].anyoneCanCounter || event.target == this.#myPlayerMask)) {
                     for (const ca of PlayerTurnActions[event.action].counterActions) {
@@ -106,7 +110,11 @@ export default class GameMasker extends ClientMiddleware {
                     }
                 }
 
-                this.showActions(displayActions);
+                if (!event.players || event.players.indexOf(this.#myPlayerMask) > -1) {
+                    this.showActions(displayActions);
+                } else {
+                    this.showActions({});
+                }
             }
         }
 

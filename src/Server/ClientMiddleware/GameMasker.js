@@ -73,6 +73,11 @@ export default class GameMasker extends ClientMiddleware {
         if (event.winner && this.#playerMasks[event.winner]) {
             event.winner = this.#playerMasks[event.winner];
         }
+        if (event.players) {
+            var newPlayers = [];
+            for (const p of event.players) { newPlayers.push(this.#playerMasks[p]); }
+            event.players = newPlayers;
+        }
         if (event.__type == 'removePlayer' && this.#playerMasks[event.id]) {
             event.id = this.#playerMasks[event.id];
             delete this.#playerMasks[event.id];
