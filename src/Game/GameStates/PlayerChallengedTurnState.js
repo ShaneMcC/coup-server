@@ -37,7 +37,7 @@ export default class PlayerChallengedTurnState extends GameState {
             this.#continueAction = false;
 
             if (this.#successfulChallenge) {
-                this.game.emit('returnInfluenceToDeck', { 'player': this.player.id, 'influence': this.#revealedInfluence });
+                this.game.emit('returnKnownInfluenceToDeck', { 'player': this.player.id, 'influence': this.#revealedInfluence });
                 this.game.emit('setDeck', { 'deck': this.game.getShuffledDeck(this.game.getGameDeck()) });
                 this.game.emit('allocateNextInfluence', { 'player': this.player.id });
             } else {

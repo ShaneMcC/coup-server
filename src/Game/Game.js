@@ -266,6 +266,11 @@ export default class Game {
             this.#gameDeck.push(event.influence);
         });
 
+        this.#gameEvents.on('returnKnownInfluenceToDeck', event => {
+            discardInfluenceHandler(event);
+            this.#gameDeck.push(event.influence);
+        });
+
         this.#gameEvents.on('gameReady', event => {
             this.state = new GameState(this);
         });
