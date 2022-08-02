@@ -10,8 +10,6 @@ import PlayerMustDiscardTurnState from './GameStates/PlayerMustDiscardTurnState.
 import PlayerExchangingCardsTurnState from './GameStates/PlayerExchangingCardsTurnState.js';
 import GameOverState from './GameStates/GameOverState.js';
 
-import Cards from './Cards.js';
-
 export default class Game {
     #gameDeck = [];
     #players = {};

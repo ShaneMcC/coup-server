@@ -39,6 +39,7 @@ Feature: Can a player assassinate correctly?
     And Charlie challenges
     Then Alice reveals Assassin
     Then Charlie reveals Contessa
+    Then Charlie passes
     Then Charlie reveals Captain
     Then Bob is the current player
     And Charlie has 0 influence remaining
