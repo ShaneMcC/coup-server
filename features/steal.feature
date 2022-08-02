@@ -41,7 +41,8 @@ Feature: Can a player claim Steal correctly?
   Scenario: Alice wants to Steal from Bob and gets blocked and bob is challenged.
     When Alice wants to claim STEAL on Bob
     When Bob counters with BLOCK_STEAL_WITH_CAPTAIN
-    When Alice challenges
+    When all players pass the Action
+    When Alice challenges the Counter
     And Bob reveals Duke
     Then Alice has 4 coins remaining
     And Bob has 0 coins remaining
@@ -50,7 +51,8 @@ Feature: Can a player claim Steal correctly?
   Scenario: Alice wants to Steal from Charlie who has a captain and tries to block it with an Ambassador that is challenged
     When Alice wants to claim STEAL on Charlie
     When Charlie counters with BLOCK_STEAL_WITH_AMBASSADOR
-    When Alice challenges
+    When all players pass the Action
+    When Alice challenges the Counter
     And Charlie reveals Captain
     Then Alice has 4 coins remaining
     And Charlie has 0 coins remaining
@@ -59,7 +61,8 @@ Feature: Can a player claim Steal correctly?
   Scenario: Alice wants to Steal from Charlie who has a captain and tries to block it with an Ambassador unchallenged
     When Alice wants to claim STEAL on Charlie
     When Charlie counters with BLOCK_STEAL_WITH_AMBASSADOR
-    And all players pass
+    And all players pass the Action
+    And all players pass the Counter
     Then Alice has 2 coins remaining
     And Charlie has 2 coins remaining
     And Bob is the current player
@@ -67,7 +70,8 @@ Feature: Can a player claim Steal correctly?
   Scenario: Alice wants to Steal from Charlie who has a captain and blocks it.
     When Alice wants to claim STEAL on Charlie
     When Charlie counters with BLOCK_STEAL_WITH_CAPTAIN
-    When Alice challenges
+    When all players pass the Action
+    When Alice challenges the Counter
     And Charlie reveals Captain
     And Alice reveals Assassin
     Then Alice has 2 coins remaining

@@ -18,7 +18,8 @@ Feature: Can a player assassinate correctly?
   Scenario: Alice wants to Assassinate Charlie and gets countered.
     When Alice wants to claim ASSASSINATE on Charlie
     And Charlie counters with BLOCK_ASSASSINATE
-    And all players pass
+    And all players pass the Action
+    And all players pass the Counter
     Then Bob is the current player
     And Charlie has 2 influence remaining
     And Alice has 2 influence remaining
@@ -52,7 +53,7 @@ Feature: Can a player assassinate correctly?
     And Bob challenges
     Then Alice reveals Assassin
     Then Bob reveals Duke
-     And Charlie passes
+    And Charlie passes
     Then Charlie reveals Contessa
     Then Bob is the current player
     And Charlie has 1 influence remaining
@@ -116,6 +117,8 @@ Feature: Can a player assassinate correctly?
   Scenario: Alice wants to Assassinate Charlie and gets countered but and the counter is challenged successfully
     When Alice wants to claim ASSASSINATE on Charlie
     And Charlie counters with BLOCK_ASSASSINATE
+    And Bob passes the Action
+    And Bob passes the Counter
     And Alice challenges
     And Charlie reveals Contessa
     And Alice reveals Assassin
@@ -128,6 +131,8 @@ Feature: Can a player assassinate correctly?
   Scenario: Alice wants to Assassinate Charlie and gets countered and the counter is challenged unsuccessfully
     When Alice wants to claim ASSASSINATE on Charlie
     And Charlie counters with BLOCK_ASSASSINATE
+    And Bob passes the Action
+    And Bob passes the Counter
     And Alice challenges
     And Charlie reveals Captain
     And Charlie reveals Contessa
@@ -140,14 +145,16 @@ Feature: Can a player assassinate correctly?
   Scenario: After Alice has assasinated Charlie, Bob also wants to Assassinate Charlie and gets countered and the counter is challenged unsuccessfully and Charlie only has 1 influence to discard
     When Alice wants to claim INCOME
     When Bob wants to claim ASSASSINATE on Charlie
-     And Alice passes
-     And Charlie passes
-     And Charlie reveals Contessa
+    And Alice passes
+    And Charlie passes
+    And Charlie reveals Contessa
     Then Charlie is the current player
-     And Charlie has 1 influence remaining
+    And Charlie has 1 influence remaining
     Then Charlie wants to claim INCOME
     When Alice wants to claim ASSASSINATE on Charlie
     And Charlie counters with BLOCK_ASSASSINATE
+    And Bob passes the Action
+    And Bob passes the Counter
     And Alice challenges
     And Charlie reveals Captain
     Then Bob is the current player

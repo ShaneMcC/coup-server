@@ -1,5 +1,7 @@
 import { When, Then } from '@cucumber/cucumber'
 import { strict as assert } from 'assert'
+import { Actions, CounterActions } from '../../src/Game/Actions.js';
+import ChallengeTurnState from '../../src/Game/GameStates/ChallengeTurnState.js';
 
 When('{word} wants to claim {word}', function (player, action) {
     this.game.doPlayerAction(player, action);
@@ -37,17 +39,68 @@ When('{word} challenges', function (player) {
     this.game.doPlayerAction(player, 'CHALLENGE');
 });
 
-When('all players pass', function () {
-    // TODO: We should only pass the correct players
+When(/([^\s]+) challenges the (Action|Counter)/, function (player, thing) {
+    if (!(this.game.state instanceof ChallengeTurnState)) {
+        throw new Error('Game does not require any challenging.');
+    }
 
-    for (const [playerID, _] of Object.entries(this.game.players())) {
-        try {
-            this.game.doPlayerAction(playerID, 'PASS');
-        } catch (e) { }
+    if (thing == 'Action' && Actions[this.game.state.action] == undefined) {
+        throw new Error(`Player is not challenging an action: ${this.game.state.toString()}`)
+    } else if (thing == 'Counter' && CounterActions[this.game.state.action] == undefined) {
+        throw new Error(`Player is not challenging a counter: ${this.game.state.toString()}`)
+    }
+    
+    this.game.doPlayerAction(player, 'CHALLENGE');
+});
+
+When('all players pass', function () {
+    if (!(this.game.state instanceof ChallengeTurnState)) {
+        throw new Error('Game does not require any passing.');
+    }
+
+    const playersToPass = Object.keys(this.game.state.canChallenge).length > 0 ? this.game.state.canChallenge : this.game.state.canCounter;
+
+    for (const [playerID, _] of Object.entries(playersToPass)) {
+        this.game.doPlayerAction(playerID, 'PASS');
+    }
+});
+
+When(/all players pass the (Action|Counter)/, function (thing) {
+    if (!(this.game.state instanceof ChallengeTurnState)) {
+        throw new Error('Game does not require any passing.');
+    }
+
+    if (thing == 'Action' && Actions[this.game.state.action] == undefined) {
+        throw new Error(`Player is not passing an action: ${this.game.state.toString()}`)
+    } else if (thing == 'Counter' && CounterActions[this.game.state.action] == undefined) {
+        throw new Error(`Player is not passing a counter: ${this.game.state.toString()}`)
+    }
+    
+    const playersToPass = Object.keys(this.game.state.canChallenge).length > 0 ? this.game.state.canChallenge : this.game.state.canCounter;
+
+    for (const [playerID, _] of Object.entries(playersToPass)) {
+        this.game.doPlayerAction(playerID, 'PASS');
     }
 });
 
 When('{word} passes', function (player) {
+    if (!(this.game.state instanceof ChallengeTurnState)) {
+        throw new Error('Game does not require any passing.');
+    }
+
+    this.game.doPlayerAction(player, 'PASS');
+});
+
+When(/([^\s]+) passes the (Action|Counter)/, function (player, thing) {
+    if (!(this.game.state instanceof ChallengeTurnState)) {
+        throw new Error('Game does not require any passing.');
+    }
+
+    if (thing == 'Action' && Actions[this.game.state.action] == undefined) {
+        throw new Error(`Player is not passing an action: ${this.game.state.toString()}`)
+    } else if (thing == 'Counter' && CounterActions[this.game.state.action] == undefined) {
+        throw new Error(`Player is not passing a counter: ${this.game.state.toString()}`)
+    }
     this.game.doPlayerAction(player, 'PASS');
 });
 

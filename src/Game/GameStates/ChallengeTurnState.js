@@ -9,6 +9,7 @@ export default class ChallengeTurnState extends GameState {
     canChallenge = {};
     canCounter = {};
     counterOnly = false;
+    pendingCounters = [];
 
     #hasProcessed = false;
 
@@ -39,6 +40,12 @@ export default class ChallengeTurnState extends GameState {
     }
 
     processAction() {
+        if (this.pendingCounters.length > 0) {
+            const pendingCounter = this.pendingCounters.shift();
+            this.game.emit('playerCountered', pendingCounter);
+            return;
+        }
+
         if (Object.keys(this.canCounter).length > 0) {
             this.game.emit('playerActionStillCounterable', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'players': Object.keys(this.canCounter) });
             this.game.state = this;
@@ -121,7 +128,13 @@ export default class ChallengeTurnState extends GameState {
             // https://boardgamegeek.com/filepage/86105/action-resolution-order-flowchart
             // https://boardgamegeek.com/thread/1059909/multiple-counters-foreign-aid
 
-            this.game.emit('playerCountered', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid, 'counter': target });
+            const counterAction = { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid, 'counter': target };
+            if (Object.keys(this.canChallenge).length > 0) {
+                this.game.emit('playerWillCounter', counterAction);
+                this.pendingCounters.push(counterAction);
+            } else {
+                this.game.emit('playerCountered', counterAction);
+            }
             return [true, ''];
         }
 

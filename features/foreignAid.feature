@@ -30,9 +30,9 @@ Feature: Can a player claim Foreign Aid correctly?
   Scenario: Charlie gets challenged countering Alices Foreign Aid.
     When Alice wants to claim FOREIGN_AID
     When Charlie counters with BLOCK_FOREIGN_AID
+    Then Bob passes the Action
     When Bob challenges
     Then Charlie reveals CAPTAIN
-    When Bob passes
     Then the GameEvents contain the following:
       | __type                | player  |
       | playerFailedChallenge | Charlie |
@@ -46,6 +46,7 @@ Feature: Can a player claim Foreign Aid correctly?
   Scenario: Bob gets challenged countering Alices Foreign Aid.
     When Alice wants to claim FOREIGN_AID
     When Bob counters with BLOCK_FOREIGN_AID
+    When all players pass the Action
     When Alice challenges
     Then Bob reveals DUKE
     Then the GameEvents contain the following:
