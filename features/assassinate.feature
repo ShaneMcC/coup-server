@@ -137,7 +137,6 @@ Feature: Can a player assassinate correctly?
     And Alice has 2 influence remaining
     And Alice has 2 coins remaining
 
-
   Scenario: After Alice has assasinated Charlie, Bob also wants to Assassinate Charlie and gets countered and the counter is challenged unsuccessfully and Charlie only has 1 influence to discard
     When Alice wants to claim INCOME
     When Bob wants to claim ASSASSINATE on Charlie
@@ -156,3 +155,51 @@ Feature: Can a player assassinate correctly?
     And Bob has 2 influence remaining
     And Alice has 2 influence remaining
     And Alice has 3 coins remaining
+
+  Scenario: Alice wants to Assassinate Charlie and gets challenged by Charlie and then Charlie also Counters.
+    When Alice wants to claim ASSASSINATE on Charlie
+    Then Bob passes
+    And Charlie challenges
+    Then Alice reveals Assassin
+    Then Charlie reveals Captain
+    And Charlie counters with BLOCK_ASSASSINATE
+    And Alice passes
+    And Bob passes
+    Then Bob is the current player
+    And Charlie has 1 influence remaining
+    And Bob has 2 influence remaining
+    And Alice has 2 influence remaining
+    And Alice has 2 coins remaining
+
+  Scenario: Alice wants to Assassinate Charlie and gets challenged by Charlie and then Charlie also Counters and gets challenged by Bob unsuccessfully
+    When Alice wants to claim ASSASSINATE on Charlie
+    Then Bob passes
+    And Charlie challenges
+    Then Alice reveals Assassin
+    Then Charlie reveals Captain
+    And Charlie counters with BLOCK_ASSASSINATE
+    And Alice passes
+    And Bob challenges
+    And Charlie reveals Contessa
+    And Bob reveals Duke
+    Then Bob is the current player
+    And Charlie has 1 influence remaining
+    And Bob has 1 influence remaining
+    And Alice has 2 influence remaining
+    And Alice has 2 coins remaining
+
+  Scenario: Alice wants to Assassinate Charlie and gets challenged by Charlie and then Charlie also Counters and gets challenged by Bob successfully
+    When Alice wants to claim ASSASSINATE on Charlie
+    Then Bob passes
+    And Charlie challenges
+    Then Alice reveals Assassin
+    Then Charlie reveals Contessa
+    And Charlie counters with BLOCK_ASSASSINATE
+    And Alice passes
+    And Bob challenges
+    And Charlie reveals Captain
+    Then Bob is the current player
+    And Charlie has 0 influence remaining
+    And Bob has 2 influence remaining
+    And Alice has 2 influence remaining
+    And Alice has 2 coins remaining
