@@ -26,7 +26,7 @@ Feature: Can a player exchange with the deck?
     And Alice has 2 influence remaining
 
   Scenario: Alice wants to exchange when she only has 1 influence.
-    When it is Charlies turn
+    Given it is Charlies turn
     And Charlie wants to claim ASSASSINATE on Alice
     And all players pass the Action
     And Alice reveals Assassin

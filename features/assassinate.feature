@@ -26,7 +26,7 @@ Feature: Can a player assassinate correctly?
     And Alice has 2 coins remaining
 
   Scenario: Bob wants to Assassinate Charlie and gets challenged.
-    When it is Bobs turn
+    Given it is Bobs turn
     And Bob wants to claim ASSASSINATE on Charlie
     And Charlie challenges the Action
     Then Bob reveals DUKE

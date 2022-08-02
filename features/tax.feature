@@ -20,7 +20,7 @@ Feature: Can a player claim Tax correctly?
     And Bob is the current player
 
   Scenario: Bob wants tax and gets challenged
-    When it is Bobs turn
+    Given it is Bobs turn
     And Bob wants to claim TAX
     When Charlie challenges the Action
     Then Bob reveals DUKE

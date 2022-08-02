@@ -37,7 +37,6 @@ Feature: Can a player claim Steal correctly?
     Then Bob is the current player
     And Bob has 2 coins remaining
     And Alice has 2 coins remaining
-    And Bob is the current player
 
   Scenario: Alice wants to Steal from Bob and gets blocked and bob is challenged.
     When Alice wants to claim STEAL on Bob
@@ -80,7 +79,7 @@ Feature: Can a player claim Steal correctly?
     And Bob is the current player
 
   Scenario: Bob can still counter a steal from charlie after alice challenges them and they revealed their captain
-    When it is Charlies turn
+    Given it is Charlies turn
     When Charlie wants to claim STEAL on Bob
     And Alice challenges the Action
     And Charlie reveals Captain
