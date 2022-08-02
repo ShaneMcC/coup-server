@@ -35,10 +35,6 @@ When('{word} reveals {word}', function (player, influence) {
     this.game.doPlayerAction(player, 'REVEAL', influence.toUpperCase());
 });
 
-When('{word} challenges', function (player) {
-    this.game.doPlayerAction(player, 'CHALLENGE');
-});
-
 When(/([^\s]+) challenges the (Action|Counter)/, function (player, thing) {
     if (!(this.game.state instanceof ChallengeTurnState)) {
         throw new Error('Game does not require any challenging.');
@@ -51,18 +47,6 @@ When(/([^\s]+) challenges the (Action|Counter)/, function (player, thing) {
     }
     
     this.game.doPlayerAction(player, 'CHALLENGE');
-});
-
-When('all players pass', function () {
-    if (!(this.game.state instanceof ChallengeTurnState)) {
-        throw new Error('Game does not require any passing.');
-    }
-
-    const playersToPass = Object.keys(this.game.state.canChallenge).length > 0 ? this.game.state.canChallenge : this.game.state.canCounter;
-
-    for (const [playerID, _] of Object.entries(playersToPass)) {
-        this.game.doPlayerAction(playerID, 'PASS');
-    }
 });
 
 When(/all players pass the (Action|Counter)/, function (thing) {
@@ -78,17 +62,13 @@ When(/all players pass the (Action|Counter)/, function (thing) {
     
     const playersToPass = Object.keys(this.game.state.canChallenge).length > 0 ? this.game.state.canChallenge : this.game.state.canCounter;
 
+    if (Object.keys(playersToPass).length == 0) {
+        throw new Error(`There is no one waiting on passing the ${thing}`)
+    }
+
     for (const [playerID, _] of Object.entries(playersToPass)) {
         this.game.doPlayerAction(playerID, 'PASS');
     }
-});
-
-When('{word} passes', function (player) {
-    if (!(this.game.state instanceof ChallengeTurnState)) {
-        throw new Error('Game does not require any passing.');
-    }
-
-    this.game.doPlayerAction(player, 'PASS');
 });
 
 When(/([^\s]+) passes the (Action|Counter)/, function (player, thing) {

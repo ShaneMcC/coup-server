@@ -12,7 +12,7 @@ Feature: Can a player claim Tax correctly?
     Then the GameEvents contain the following:
       | __type                    | player | action |
       | challengeablePlayerAction | Alice  | TAX    |
-    When all players pass
+    When all players pass the Action
     Then the GameEvents contain the following:
       | __type            | player | coins |
       | playerGainedCoins | Alice  | 3     |
@@ -22,7 +22,7 @@ Feature: Can a player claim Tax correctly?
   Scenario: Bob wants tax and gets challenged
     When it is Bobs turn
     And Bob wants to claim TAX
-    When Charlie challenges
+    When Charlie challenges the Action
     Then Bob reveals DUKE
     Then the GameEvents contain the following:
       | __type                | player |
@@ -38,7 +38,7 @@ Feature: Can a player claim Tax correctly?
 
   Scenario: Alice wants tax and gets challenged
     When Alice wants to claim TAX
-    And Charlie challenges
+    And Charlie challenges the Action
     Then Alice reveals ASSASSIN
     Then the GameEvents contain the following:
       | __type                | player |

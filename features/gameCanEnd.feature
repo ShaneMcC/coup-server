@@ -21,7 +21,7 @@ Feature: Can a player win the game?
     When Alice wants to claim COUP on Bob
     And Bob reveals Duke
     When Charlie wants to claim ASSASSINATE on Alice
-    And Alice challenges
+    And Alice challenges the Action
     And Charlie reveals Captain
     Then Alice is the current player
     And the GameEvents contain the following:
