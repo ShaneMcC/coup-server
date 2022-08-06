@@ -8,6 +8,8 @@ import ClientSocketHandler from "./ClientSocketHandler.js";
 import AdminSocketHandler from "./AdminSocketHandler.js";
 
 import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
+import NewGameState from "../Game/GameStates/NewGameState.js";
+import GameOverState from "../Game/GameStates/GameOverState.js";
 
 export default class GameServer {
     appConfig;
@@ -48,8 +50,16 @@ export default class GameServer {
             });
         }
 
-        // TODO: Games need to age out somehow
-        // TODO: Games need to persist to disk somewhow
+        setInterval(() => { this.serverTick() }, 60 * 1000);
+        setInterval(() => { this.hourly() }, 60 * 60 * 1000);
+    }
+
+    serverTick() {
+        // Do Nothing 
+    }
+
+    hourly() {
+        console.log(`Hourly Cleanup: ${JSON.stringify(this.cleanup())}`);
     }
 
     #prepareNewGame(gameid) {
@@ -195,7 +205,10 @@ export default class GameServer {
             var gameInfo = {
                 game: game.gameID(),
                 created: game.createdAt,
+                lastEventAt: game.lastEventAt,
+                stalled: game.lastEventAt < new Date(Date.now() - 86400),
                 state: game.state.toString(),
+                stateName: game.state.constructor.name,
                 players: game.players(),
             }
 
@@ -219,6 +232,63 @@ export default class GameServer {
 
     removeSocket(socketID) {
         delete this.#sockets[socketID];
+    }
+
+    cleanup() {
+        const cleanup = {};
+
+        cleanup['unused'] = this.cleanupUnused();
+        cleanup['finished'] = this.cleanupFinished();
+        cleanup['stalled'] = this.cleanupStalled();
+
+        return cleanup;
+    }
+
+    cleanupUnused() {
+        const games = [];
+
+        for (const [gameID, game] of Object.entries(this.#games)) {
+            if (game.state instanceof NewGameState) {
+                if (game.createdAt < new Date(Date.now() - 86400)) {
+                    // Cleanup Game
+                    game.endGame(`Game timed out.`);
+                    this.removeGame(gameID);
+                    this.removeSaveGame(gameID);
+
+                    games.push(gameID);
+                }
+            }
+        }
+
+        return games;
+    }
+
+    cleanupFinished() {
+        const games = [];
+
+        for (const [gameID, game] of Object.entries(this.#games)) {
+            if (game.state instanceof GameOverState) {
+                if (game.createdAt < new Date(Date.now() - (7 * 86400))) {
+                    this.removeGame(gameID);
+                    games.push(gameID);
+                }
+            }
+        }
+
+        return games;
+    }
+
+    cleanupStalled() {
+        const games = [];
+
+        for (const [gameID, game] of Object.entries(this.#games)) {
+            if (game.lastEventAt < new Date(Date.now() - (1 * 86400))) {
+                this.removeGame(gameID);
+                games.push(gameID);
+            }
+        }
+
+        return games;
     }
 
     run() {

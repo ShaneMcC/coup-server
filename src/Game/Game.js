@@ -25,6 +25,7 @@ export default class Game {
     started = false;
     ended = false;
     createdAt = new Date(0);
+    lastEventAt = new Date(0);
     debug = false;
 
     constructor() {
@@ -66,8 +67,11 @@ export default class Game {
         });
     }
 
-    emit(event, ...args) {
-        this.#gameEvents.emit(event, ...args);
+    emit(event, args) {
+        if (args.date) {
+            this.lastEventAt = args.date instanceof Date ? args.date : new Date(args.date);
+        }
+        this.#gameEvents.emit(event, args);
     }
 
     listen(handler) {
@@ -198,7 +202,7 @@ export default class Game {
     addHandlers() {
         this.#gameEvents.on('gameCreated', event => {
             this.#gameID = event.game;
-            this.createdAt = event.date;
+            this.createdAt = event.date instanceof Date ? event.date : new Date(event.date);
         });
 
         this.#gameEvents.on('addPlayer', event => {

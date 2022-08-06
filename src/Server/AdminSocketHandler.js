@@ -71,6 +71,51 @@ export default class AdminSocketHandler {
             this.doListGames();
         });
 
+        this.#socket.on('cleanup', (type) => {
+            var gameIDs = {};
+
+            switch (type) {
+                case 'unused':
+                    gameIDs['unused'] = this.#server.cleanupUnused();
+                    break;
+
+                case 'finished':
+                    gameIDs['finished'] = this.#server.cleanupFinished();
+                    break;
+
+                case 'stalled':
+                    gameIDs['stalled'] = this.#server.cleanupStalled();
+                    break;
+
+                default:
+                    gameIDs = this.#server.cleanup();
+                    break;
+            }
+
+            var anyGames = false;
+
+            if (gameIDs['unused']?.length > 0) {
+                this.#socket.emit('success', { message: `Cleanup unused: ${JSON.stringify(gameIDs['unused'])}` });
+                anyGames = true;
+            }
+
+            if (gameIDs['finished']?.length > 0) {
+                this.#socket.emit('success', { message: `Cleanup finished: ${JSON.stringify(gameIDs['finished'])}` });
+                anyGames = true;
+            }
+
+            if (gameIDs['stalled']?.length > 0) {
+                this.#socket.emit('success', { message: `Cleanup stalled: ${JSON.stringify(gameIDs['stalled'])}` });
+                anyGames = true;
+            }
+
+            if (!anyGames) {
+                this.#socket.emit('error', { error: `Cleanup removed no games.` });
+            }
+
+            this.doListGames();
+        });
+
         this.#socket.on('refreshGame', (gameId) => {
             this.#socket.emit('success', { message: `${gameId} was refreshed.` });
             this.#server.refreshGame(gameId);
