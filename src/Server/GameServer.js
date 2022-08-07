@@ -68,7 +68,7 @@ export default class GameServer {
         var game = new Game();
         game.debug = this.appConfig.debugGames;
 
-        if (gameid == undefined || gameid.length == 0) {
+        if (gameid == undefined || gameid == null || gameid.length == 0) {
             do {
                 gameid = uniqueNamesGenerator({ dictionaries: [adjectiveList, colourList, animalList], length: 3, separator: '-', style: 'lowercase' });
             } while (this.#games[gameid]);
@@ -78,7 +78,7 @@ export default class GameServer {
             }
         }
 
-        return [game, gameid];
+        return [game, sanitize(gameid)];
     }
 
     #addToGamesDict(game) {
@@ -86,7 +86,7 @@ export default class GameServer {
     }
 
     createGame(gameid) {
-        var [game, gameid] = this.#prepareNewGame(sanitize(gameid));
+        var [game, gameid] = this.#prepareNewGame(gameid);
 
         game.createGame(gameid);
         this.#addToGamesDict(game);
@@ -157,6 +157,8 @@ export default class GameServer {
     }
 
     savedGameExists(gameID) {
+        if (gameID == null || gameID == undefined) { return false; }
+
         if (fs.existsSync(this.appConfig.saveLocation)) {
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
 
@@ -167,6 +169,8 @@ export default class GameServer {
     }
 
     removeSaveGame(gameID) {
+        if (gameID == null || gameID == undefined) { return false; }
+
         if (fs.existsSync(this.appConfig.saveLocation)) {
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
             fs.unlinkSync(gameFile);
@@ -177,6 +181,8 @@ export default class GameServer {
     }
 
     saveGame(gameID) {
+        if (gameID == null || gameID == undefined) { return false; }
+
         if (this.#games[gameID]) {
             var events = this.#games[gameID].game.collectEvents();
 
@@ -191,6 +197,8 @@ export default class GameServer {
     }
 
     loadGame(gameID) {
+        if (gameID == null || gameID == undefined) { return false; }
+        
         if (fs.existsSync(this.appConfig.saveLocation)) {
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
 
