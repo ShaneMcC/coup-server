@@ -40,15 +40,15 @@ export default class ChallengeTurnState extends GameState {
     }
 
     processAction() {
-        if (this.pendingCounters.length > 0) {
-            const pendingCounter = this.pendingCounters.shift();
-            this.game.emit('playerCountered', pendingCounter);
-            return;
-        }
-
         if (Object.keys(this.canCounter).length > 0) {
             this.game.emit('playerActionStillCounterable', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'players': Object.keys(this.canCounter) });
             this.game.state = this;
+            return;
+        }
+
+        if (this.pendingCounters.length > 0) {
+            const pendingCounter = this.pendingCounters.shift();
+            this.game.emit('playerCountered', pendingCounter);
             return;
         }
 
