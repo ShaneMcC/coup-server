@@ -68,7 +68,7 @@ export default class Game {
     }
 
     emit(event, args) {
-        if (args.date) {
+        if (args?.date) {
             this.lastEventAt = args.date instanceof Date ? args.date : new Date(args.date);
         }
         this.#gameEvents.emit(event, args);
