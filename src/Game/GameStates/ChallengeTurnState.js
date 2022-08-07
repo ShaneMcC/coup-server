@@ -40,6 +40,9 @@ export default class ChallengeTurnState extends GameState {
     }
 
     processAction() {
+        // Remove dead players from canCounter list (eg, if they challenged and failed.)
+        this.canCounter = Object.fromEntries(Object.entries(this.canCounter).filter(([playerid, _]) => this.game.players()[playerid].influence.length > 0));
+
         if (Object.keys(this.canCounter).length > 0) {
             this.game.emit('playerActionStillCounterable', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'players': Object.keys(this.canCounter) });
             this.game.state = this;

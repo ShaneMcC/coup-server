@@ -33,7 +33,7 @@ Feature: Can a player claim Steal correctly?
     When Alice wants to claim STEAL on Bob
     When Bob counters with BLOCK_STEAL_WITH_CAPTAIN
     When all players pass the Action
-     And all players pass the Counter
+    And all players pass the Counter
     Then Bob is the current player
     And Bob has 2 coins remaining
     And Alice has 2 coins remaining
@@ -92,3 +92,74 @@ Feature: Can a player claim Steal correctly?
     And Charlie has 2 coins remaining
     And Charlie has 2 influence remaining
     And Alice has 1 influence remaining
+
+  Scenario: Charlie steals from Alice, Alice successfully Challenges and charlie loses their final influence, and can no longer play.
+    When Alice wants to claim INCOME
+    When Bob wants to claim INCOME
+    When Charlie wants to claim INCOME
+    When Alice wants to claim ASSASSINATE on Bob
+    And all players pass the Action
+    And Bob reveals Duke
+    Then Bob wants to claim ASSASSINATE on Charlie
+    And all players pass the Action
+    And Charlie reveals Captain
+    Then Charlie wants to claim ASSASSINATE on Alice
+    And all players pass the Action
+    And Alice reveals Assassin
+    Then Alice has 1 influence remaining
+    And Bob has 1 influence remaining
+    And Charlie has 1 influence remaining
+    Given it is Charlies turn
+    When Charlie wants to claim STEAL on Alice
+     And Bob passes the Action
+     And Alice challenges the Action
+    When Charlie reveals Contessa
+    Then Alice is the current player
+
+  Scenario: Charlie steals from Alice, Alice unsuccessfully Challenges and loses their final influence, and can no longer counter.
+    When Alice wants to claim INCOME
+    When Bob wants to claim INCOME
+    When Charlie wants to claim INCOME
+    When Alice wants to claim ASSASSINATE on Bob
+    And all players pass the Action
+    And Bob reveals Duke
+    Then Bob wants to claim ASSASSINATE on Charlie
+    And all players pass the Action
+    And Charlie reveals Contessa
+    Then Charlie wants to claim ASSASSINATE on Alice
+    And all players pass the Action
+    And Alice reveals Assassin
+    Then Alice has 1 influence remaining
+    And Bob has 1 influence remaining
+    And Charlie has 1 influence remaining
+    Given it is Charlies turn
+    When Charlie wants to claim STEAL on Alice
+     And Bob passes the Action
+     And Alice challenges the Action
+    When Charlie reveals Captain
+     And Alice reveals Ambassador
+    Then Bob is the current player
+
+  Scenario: Charlie steals from Alice, Alice unsuccessfully Challenges and loses a single influence, and can also counter.
+    When Alice wants to claim INCOME
+    When Bob wants to claim INCOME
+    When Charlie wants to claim INCOME
+    When Alice wants to claim ASSASSINATE on Bob
+    And all players pass the Action
+    And Bob reveals Duke
+    Then Bob wants to claim ASSASSINATE on Charlie
+    And all players pass the Action
+    And Charlie reveals Contessa
+    Then Charlie wants to claim INCOME
+    Then Alice has 2 influence remaining
+    And Bob has 1 influence remaining
+    And Charlie has 1 influence remaining
+    Given it is Charlies turn
+    When Charlie wants to claim STEAL on Alice
+     And Bob passes the Action
+     And Alice challenges the Action
+    When Charlie reveals Captain
+     And Alice reveals Ambassador
+    Then Alice counters with BLOCK_STEAL_WITH_CAPTAIN
+    And all players pass the Counter
+    Then Alice is the current player
