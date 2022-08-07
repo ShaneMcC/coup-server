@@ -52,7 +52,7 @@ export default class ClientSocketHandler {
         });
 
         this.#socket.on('checkGame', (id) => {
-            var game = this.#server.getGame(id);
+            var game = this.#server.getOrLoadGame(id);
 
             if (game != undefined) {
                 var joinable = !game.started;
@@ -63,7 +63,7 @@ export default class ClientSocketHandler {
         });
 
         this.#socket.on('joinGame', (id, playerName) => {
-            var game = this.#server.getGame(id);
+            var game = this.#server.getOrLoadGame(id);
 
             if (game != undefined) {
                 var playerID = game.addPlayer(playerName);
@@ -84,7 +84,7 @@ export default class ClientSocketHandler {
         });
 
         this.#socket.on('spectateGame', (id) => {
-            var game = this.#server.getGame(id);
+            var game = this.#server.getOrLoadGame(id);
 
             if (game != undefined) {
                 this.addKnownGame(id, undefined);
@@ -101,7 +101,7 @@ export default class ClientSocketHandler {
         // TODO: There is no security here, anyone can rejoin as anyone else if they know their player ID
         //       which they will do from looking at the game events...
         this.#socket.on('rejoinGame', (id, playerID) => {
-            var game = this.#server.getGame(id);
+            var game = this.#server.getOrLoadGame(id);
 
             if (game != undefined) {
                 if (game.players()[playerID]) {

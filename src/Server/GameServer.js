@@ -81,11 +81,15 @@ export default class GameServer {
         return [game, gameid];
     }
 
+    #addToGamesDict(game) {
+        this.#games[game.gameID()] = {'game': game, 'created': new Date()};
+    }
+
     createGame(gameid) {
         var [game, gameid] = this.#prepareNewGame(sanitize(gameid));
 
         game.createGame(gameid);
-        this.#games[game.gameID()] = game;
+        this.#addToGamesDict(game);
 
         return game;
     }
@@ -116,7 +120,15 @@ export default class GameServer {
     }
 
     getGame(gameID) {
-        return this.#games[gameID];
+        return this.#games[gameID].game;
+    }
+
+    getOrLoadGame(gameID) {
+        if (!this.#games[gameID]) {
+            this.loadGame(gameID);
+        }
+
+        return this.getGame(gameID);
     }
 
     refreshGame(gameID) {
@@ -131,7 +143,7 @@ export default class GameServer {
 
     removeGame(gameID) {
         if (this.#games[gameID]) {
-            var game = this.#games[gameID];
+            var game = this.#games[gameID].game;
             delete this.#games[gameID];
             game.unlistenAll();
 
@@ -139,9 +151,18 @@ export default class GameServer {
                 socket.handler.gameRemoved(gameID);
             }
 
-            delete this.#games[gameID];
             return true;
         }
+        return false;
+    }
+
+    savedGameExists(gameID) {
+        if (fs.existsSync(this.appConfig.saveLocation)) {
+            var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
+
+            return fs.existsSync(gameFile);
+        }
+
         return false;
     }
 
@@ -157,7 +178,7 @@ export default class GameServer {
 
     saveGame(gameID) {
         if (this.#games[gameID]) {
-            var events = this.#games[gameID].collectEvents();
+            var events = this.#games[gameID].game.collectEvents();
 
             if (fs.existsSync(this.appConfig.saveLocation)) {
                 fs.writeFileSync(this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json', JSON.stringify(events, null, 2));
@@ -186,7 +207,7 @@ export default class GameServer {
 
                         // Hydrate with the rest of the events.
                         game.hydrate(events);
-                        this.#games[game.gameID()] = game;
+                        this.#addToGamesDict(game);
 
                         return true;
                     }
@@ -203,18 +224,19 @@ export default class GameServer {
 
     getAvailableGames() {
         const games = {};
-        for (const [gameID, game] of Object.entries(this.#games)) {
+        for (const [gameID, gameMeta] of Object.entries(this.#games)) {
             var gameInfo = {
-                game: game.gameID(),
-                created: game.createdAt,
-                lastEventAt: game.lastEventAt,
-                stalled: game.lastEventAt < new Date(Date.now() - 86400),
-                state: game.state.toString(),
-                stateName: game.state.constructor.name,
-                players: game.players(),
+                game: gameMeta.game.gameID(),
+                serverCreated: gameMeta.created,
+                created: gameMeta.game.createdAt,
+                lastEventAt: gameMeta.game.lastEventAt,
+                stalled: gameMeta.game.lastEventAt < new Date(Date.now() - (86400 * 1000)),
+                state: gameMeta.game.state.toString(),
+                stateName: gameMeta.game.state.constructor.name,
+                players: gameMeta.game.players(),
             }
 
-            games[game.gameID()] = gameInfo;
+            games[gameID] = gameInfo;
         }
 
         return games;
@@ -249,11 +271,13 @@ export default class GameServer {
     cleanupUnused() {
         const games = [];
 
-        for (const [gameID, game] of Object.entries(this.#games)) {
-            if (game.state instanceof NewGameState) {
-                if (game.createdAt < new Date(Date.now() - 86400)) {
+        for (const [gameID, gameMeta] of Object.entries(this.#games)) {
+            if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
+
+            if (gameMeta.game.state instanceof NewGameState) {
+                if (gameMeta.game.createdAt < new Date(Date.now() - (86400 * 1000))) {
                     // Cleanup Game
-                    game.endGame(`Game timed out.`);
+                    gameMeta.game.endGame(`Game timed out.`);
                     this.removeGame(gameID);
                     this.removeSaveGame(gameID);
 
@@ -268,9 +292,11 @@ export default class GameServer {
     cleanupFinished() {
         const games = [];
 
-        for (const [gameID, game] of Object.entries(this.#games)) {
-            if (game.state instanceof GameOverState) {
-                if (game.createdAt < new Date(Date.now() - (7 * 86400))) {
+        for (const [gameID, gameMeta] of Object.entries(this.#games)) {
+            if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
+
+            if (gameMeta.game.state instanceof GameOverState) {
+                if (gameMeta.game.createdAt < new Date(Date.now() - (7 * (86400 * 1000)))) {
                     this.removeGame(gameID);
                     games.push(gameID);
                 }
@@ -283,8 +309,10 @@ export default class GameServer {
     cleanupStalled() {
         const games = [];
 
-        for (const [gameID, game] of Object.entries(this.#games)) {
-            if (game.lastEventAt < new Date(Date.now() - (1 * 86400))) {
+        for (const [gameID, gameMeta] of Object.entries(this.#games)) {
+            if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
+
+            if (gameMeta.game.lastEventAt < new Date(Date.now() - (1 * (86400 * 1000)))) {
                 this.removeGame(gameID);
                 games.push(gameID);
             }

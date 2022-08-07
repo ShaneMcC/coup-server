@@ -47,12 +47,6 @@ if ($appConfig.testGames) {
 }
 
 if ($appConfig.persistGames) {
-    // Load all the saved games...
-    for (const gameid in gs.getSavedGames()) {
-        console.log(`Loading saved game: ${gameid}`);
-        gs.loadGame(gameid);
-    }
-
     // Add handler for when we're exiting to try and save the games...
     function saveAllGames() {
         for (const gameid in gs.getAvailableGames()) {
