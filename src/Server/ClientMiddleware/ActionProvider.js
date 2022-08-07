@@ -106,6 +106,7 @@ export default class GameMasker extends ClientMiddleware {
                             name: CounterActions[ca].name,
                             target: ca,
                             action: 'COUNTER',
+                            validCards: CounterActions[ca].validCards,
                         }
                     }
                 }

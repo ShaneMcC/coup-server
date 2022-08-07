@@ -120,7 +120,7 @@ export default class GameServer {
     }
 
     getGame(gameID) {
-        return this.#games[gameID].game;
+        return this.#games[gameID]?.game;
     }
 
     getOrLoadGame(gameID) {
