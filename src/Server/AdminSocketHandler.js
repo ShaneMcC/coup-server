@@ -256,7 +256,7 @@ export default class AdminSocketHandler {
         });
 
         this.#socket.on('adminAction', (gameid, playerid, action, target) => {
-            requireValidGame(gameId, (game) => {
+            requireValidGame(gameid, (game) => {
                 try {
                     game.doPlayerAction(playerid, action, target);
                 } catch (e) {
@@ -266,7 +266,7 @@ export default class AdminSocketHandler {
         });
 
         this.#socket.on('adminEmitEvent', (gameid, event) => {
-            requireValidGame(gameId, (game) => {
+            requireValidGame(gameid, (game) => {
                 try {
                     // Weird use of hydrate, but should work.
                     game.hydrate([event]);
