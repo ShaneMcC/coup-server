@@ -11,6 +11,8 @@ import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList
 import NewGameState from "../Game/GameStates/NewGameState.js";
 import GameOverState from "../Game/GameStates/GameOverState.js";
 
+import sanitize from "sanitize-filename";
+
 export default class GameServer {
     appConfig;
 
@@ -80,7 +82,7 @@ export default class GameServer {
     }
 
     createGame(gameid) {
-        var [game, gameid] = this.#prepareNewGame(gameid);
+        var [game, gameid] = this.#prepareNewGame(sanitize(gameid));
 
         game.createGame(gameid);
         this.#games[game.gameID()] = game;
@@ -145,7 +147,7 @@ export default class GameServer {
 
     removeSaveGame(gameID) {
         if (fs.existsSync(this.appConfig.saveLocation)) {
-            var gameFile = this.appConfig.saveLocation + '/' + gameID + '.json';
+            var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
             fs.unlinkSync(gameFile);
             return true;
         }
@@ -158,7 +160,7 @@ export default class GameServer {
             var events = this.#games[gameID].collectEvents();
 
             if (fs.existsSync(this.appConfig.saveLocation)) {
-                fs.writeFileSync(this.appConfig.saveLocation + '/' + gameID + '.json', JSON.stringify(events, null, 2));
+                fs.writeFileSync(this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json', JSON.stringify(events, null, 2));
 
                 return true;
             }
@@ -169,7 +171,7 @@ export default class GameServer {
 
     loadGame(gameID) {
         if (fs.existsSync(this.appConfig.saveLocation)) {
-            var gameFile = this.appConfig.saveLocation + '/' + gameID + '.json';
+            var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
 
             if (!this.#games[gameID] && fs.existsSync(gameFile)) {
                 var events = JSON.parse(fs.readFileSync(gameFile));
