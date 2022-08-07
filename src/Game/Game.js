@@ -71,6 +71,7 @@ export default class Game {
         if (args?.date) {
             this.lastEventAt = args.date instanceof Date ? args.date : new Date(args.date);
         }
+        this.state.handleGameEvent(event, args);
         this.#gameEvents.emit(event, args);
     }
 

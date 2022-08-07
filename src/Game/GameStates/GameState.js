@@ -3,5 +3,6 @@ export default class GameState {
 
     constructor(game) { this.game = game; }
     handlePlayerAction(playerid, action, target) { return [false, 'Game is not accepting actions.']; }
+    handleGameEvent(event, args) { }
     toString() { return `GameState`; }
 }

@@ -203,7 +203,12 @@ export default class GameServer {
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
 
             if (!this.#games[gameID] && fs.existsSync(gameFile)) {
-                var events = JSON.parse(fs.readFileSync(gameFile));
+                try {
+                    var events = JSON.parse(fs.readFileSync(gameFile));
+                } catch (e) {
+                    return false;
+                }
+                
                 if (events.length > 0) {
                     var [game, _] = this.#prepareNewGame(gameID);
 
