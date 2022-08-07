@@ -50,7 +50,7 @@ export default class PlayerTurnState extends GameState {
         }
 
         if (this.player.coins >= 10 && action != 'COUP') {
-            return [false, `${Actions[action].name} is not valid with more than 10 coins.`];
+            return [false, `${Actions[action].name} is not valid with 10 or more coins.`];
         }
 
         if (Actions[action].requiredCoins) {

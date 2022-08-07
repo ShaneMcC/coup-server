@@ -84,7 +84,11 @@ export default class GameMasker extends ClientMiddleware {
 
         if (event.__type == 'beginPlayerTurn') {
             if (event.player == this.#myPlayerMask) {
-                this.showActions(PlayerTurnActions);
+                if (thisGamePlayers[this.#playerID].coins >= 10) {
+                    this.showActions({'COUP': PlayerTurnActions.COUP});
+                } else {
+                    this.showActions(PlayerTurnActions);
+                }
             } else {
                 this.showActions({});
             }
