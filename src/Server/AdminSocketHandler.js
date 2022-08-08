@@ -25,6 +25,10 @@ export default class AdminSocketHandler {
     }
 
     addSocketHandlers() {
+        this.#socket.on('connect', () => {
+            this.#socket.emit('clientConnected', { socketID: this.#socket.id, 'type': 'admin', 'serverVersion': this.#server.appConfig.gitVersion });
+        });
+
         this.#socket.on('allowPublicGames', () => {
             this.#server.appConfig.publicGames = true;
             this.doGetServerConfig();

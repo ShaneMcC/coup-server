@@ -13,8 +13,6 @@ export default class ClientSocketHandler {
         this.#socket = socket;
 
         console.log(`New client: ${socket.id}`);
-        this.#socket.emit('clientConnected', { socketID: socket.id, 'type': 'client', 'serverVersion': this.#server.appConfig.gitVersion });
-        this.#socket.emit('gameCreationEnabled', { value: this.#server.appConfig.publicGames });
 
         this.addSocketHandlers();
     }
@@ -41,6 +39,11 @@ export default class ClientSocketHandler {
     }
 
     addSocketHandlers() {
+        this.#socket.on('connect', () => {
+            this.#socket.emit('clientConnected', { socketID: this.#socket.id, 'type': 'client', 'serverVersion': this.#server.appConfig.gitVersion });
+            this.#socket.emit('gameCreationEnabled', { value: this.#server.appConfig.publicGames });
+        });
+
         this.#socket.on('createGame', () => {
             if (this.#server.appConfig.publicGames) {
                 var game = this.#server.createGame();
