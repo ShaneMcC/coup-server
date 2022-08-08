@@ -13,7 +13,7 @@ export default class ClientSocketHandler {
         this.#socket = socket;
 
         console.log(`New client: ${socket.id}`);
-        this.#socket.emit('clientConnected', { socketID: socket.id });
+        this.#socket.emit('clientConnected', { socketID: socket.id, 'type': 'client', 'serverVersion': this.#server.appConfig.gitVersion });
         this.#socket.emit('gameCreationEnabled', { value: this.#server.appConfig.publicGames });
 
         this.addSocketHandlers();

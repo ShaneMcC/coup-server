@@ -10,7 +10,7 @@ export default class AdminSocketHandler {
         this.#socket = socket;
 
         console.log(`New admin client: ${socket.id}`);
-        this.#socket.emit('clientConnected', { socketID: socket.id });
+        this.#socket.emit('clientConnected', { socketID: socket.id, 'type': 'admin', 'serverVersion': this.#server.appConfig.gitVersion });
 
         this.addSocketHandlers();
     }
