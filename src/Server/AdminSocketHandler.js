@@ -25,7 +25,7 @@ export default class AdminSocketHandler {
     }
 
     addSocketHandlers() {
-        this.#socket.on('connect', () => {
+        this.#socket.on('connection', () => {
             this.#socket.emit('clientConnected', { socketID: this.#socket.id, 'type': 'admin', 'serverVersion': this.#server.appConfig.gitVersion });
         });
 
