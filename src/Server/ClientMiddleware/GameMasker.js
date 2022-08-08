@@ -108,6 +108,19 @@ export default class GameMasker extends ClientMiddleware {
         if (event.__type == 'returnInfluenceToDeck' && event.player != myPlayerMask) {
             event.influence = 'UNKNOWN';
         }
+
+        // Modify playerWillCounter to be a playerPassed event
+        if (event.__type == 'playerWillCounter') {
+            event.__type = 'playerPassed';
+            event.player = event.challenger;
+
+            for (const k of Object.keys(event)) {
+                if (k != '__type' && k != 'player' && k != 'game'&& k != 'date') {
+                    delete event[k];
+                }
+            }
+        }
+
     }
 
 
