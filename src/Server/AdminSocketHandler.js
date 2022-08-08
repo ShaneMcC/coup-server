@@ -10,7 +10,7 @@ export default class AdminSocketHandler {
         this.#socket = socket;
 
         console.log(`New admin client: ${socket.id}`);
-        this.#socket.emit('clientConnected', { socketID: socket.id, 'type': 'admin', 'serverVersion': this.#server.appConfig.gitVersion });
+        this.#socket.emit('clientConnected', { socketID: socket.id, 'type': 'admin', 'serverVersion': this.#server.appConfig.buildConfig.gitVersion });
 
         this.addSocketHandlers();
     }
@@ -25,10 +25,6 @@ export default class AdminSocketHandler {
     }
 
     addSocketHandlers() {
-        this.#socket.on('connection', () => {
-            this.#socket.emit('clientConnected', { socketID: this.#socket.id, 'type': 'admin', 'serverVersion': this.#server.appConfig.gitVersion });
-        });
-
         this.#socket.on('allowPublicGames', () => {
             this.#server.appConfig.publicGames = true;
             this.doGetServerConfig();
