@@ -21,6 +21,7 @@ export default class PlayerChallengedTurnState extends GameState {
         this.previousState = previousState;
         this.#successfulChallenge = false;
 
+        this.#setupEventHandlers();
         game.log('STATE: PlayerChallenged Turn ', [player, action, challenger]);
     }
 
@@ -108,10 +109,13 @@ export default class PlayerChallengedTurnState extends GameState {
         return [false, `Unknown action: ${action}`];
     }
 
-    handleGameEvent(event, args) {
-        if (event == 'playerPassedChallenge' || event == 'playerFailedChallenge') {
+    #setupEventHandlers() {
+        const challengeResultHandler = (args, success) => {
             this.#revealedInfluence = args.influence;
-            this.#successfulChallenge = (event == 'playerPassedChallenge');
-        }
+            this.#successfulChallenge = success;
+        };
+
+        this.gameEvents.on('playerPassedChallenge', args => challengeResultHandler(args, true));
+        this.gameEvents.on('playerFailedChallenge', args => challengeResultHandler(args, false));
     }
 }

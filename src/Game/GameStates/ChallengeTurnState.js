@@ -33,6 +33,7 @@ export default class ChallengeTurnState extends GameState {
             }
         }
 
+        this.#setupEventHandlers();
         game.log('STATE: Challenge Turn ', [player, action, target]);
     }
 
@@ -132,25 +133,27 @@ export default class ChallengeTurnState extends GameState {
         return [false, `Invalid action: ${action}`];
     }
 
-
-    handleGameEvent(event, args) {
-        if (event == "playerPassed") {
+    #setupEventHandlers() {
+        this.gameEvents.on('playerPassed', (args) => {
             delete this.canChallenge[args.player];
             delete this.canCounter[args.player];
-        }
+        });
 
-        if (event == "playerCountered" || event == "playerWillCounter") {
+        const playerCounteredHandler = (args) => {
             delete this.canChallenge[args.challenger];
             delete this.canCounter[args.challenger];
-        }
+        };
 
-        if (event == "playerWillCounter") {
+        this.gameEvents.on('playerCountered', playerCounteredHandler);
+
+        this.gameEvents.on('playerWillCounter', (args) => {
+            playerCounteredHandler(args);
             this.pendingCounters.push(args);
-        }
+        });
 
-        if (event == "playerChallenged") {
+        this.gameEvents.on('playerChallenged', (args) => {
             this.canChallenge = {};
             this.counterOnly = true;
-        }
+        });
     }
 }
