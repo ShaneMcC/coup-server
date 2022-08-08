@@ -1,3 +1,4 @@
+
 import { Actions, CounterActions } from '../Actions.js';
 import GameState from './GameState.js';
 
@@ -87,9 +88,6 @@ export default class ChallengeTurnState extends GameState {
         if (action == "PASS") {
             this.game.emit('playerPassed', { 'player': playerid });
 
-            delete this.canChallenge[playerid];
-            delete this.canCounter[playerid];
-
             if (Object.entries(this.canChallenge).length == 0 && Object.entries(this.canCounter).length == 0) {
                 this.processAction();
 
@@ -103,25 +101,16 @@ export default class ChallengeTurnState extends GameState {
         }
 
         if (action == "CHALLENGE" && !this.counterOnly && Actions[this.action] && Actions[this.action].canChallenge) {
-            this.canChallenge = {};
-            this.counterOnly = true;
-
             this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid });
             return [true, ''];
         }
 
         if (action == "CHALLENGE" && !this.counterOnly && CounterActions[this.action]) {
-            this.canChallenge = {};
-            this.counterOnly = true;
-
             this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid });
             return [true, ''];
         }
 
         if (action == "COUNTER" && Actions[this.action] && ((this.target && this.target.id == playerid) || Actions[this.action].anyoneCanCounter) && Actions[this.action].counterActions && Actions[this.action].counterActions.indexOf(target) > -1) {
-            delete this.canChallenge[playerid];
-            delete this.canCounter[playerid];
-
             // Technically we should collect all the COUNTER claims, then allow challenging them 
             // as a whole, not a one-by-one thing like we do here.
             // 
@@ -134,7 +123,6 @@ export default class ChallengeTurnState extends GameState {
             const counterAction = { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid, 'counter': target };
             if (Object.keys(this.canChallenge).length > 0) {
                 this.game.emit('playerWillCounter', counterAction);
-                this.pendingCounters.push(counterAction);
             } else {
                 this.game.emit('playerCountered', counterAction);
             }
@@ -142,5 +130,27 @@ export default class ChallengeTurnState extends GameState {
         }
 
         return [false, `Invalid action: ${action}`];
+    }
+
+
+    handleGameEvent(event, args) {
+        if (event == "playerPassed") {
+            delete this.canChallenge[args.player];
+            delete this.canCounter[args.player];
+        }
+
+        if (event == "playerCountered" || event == "playerWillCounter") {
+            delete this.canChallenge[args.challenger];
+            delete this.canCounter[args.challenger];
+        }
+
+        if (event == "playerWillCounter") {
+            this.pendingCounters.push(args);
+        }
+
+        if (event == "playerChallenged") {
+            this.canChallenge = {};
+            this.counterOnly = true;
+        }
     }
 }
