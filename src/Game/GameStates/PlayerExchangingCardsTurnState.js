@@ -12,6 +12,8 @@ export default class PlayerExchangingCardsTurnState extends GameState {
         this.#exchangesRequired = exchangesRequired;
 
         game.log('STATE: PlayerExchangingCards Turn ', [player, exchangesRequired]);
+
+        this.#setupEventHandlers();
     }
 
     toString() {
@@ -33,7 +35,6 @@ export default class PlayerExchangingCardsTurnState extends GameState {
             }
 
             this.game.emit('returnInfluenceToDeck', { 'player': this.player.id, 'influence': target });
-            this.#count++;
 
             if (this.#count == this.#exchangesRequired) {
                 this.game.emit('playerFinishedExchangingCards', { 'player': this.player.id });
@@ -47,5 +48,13 @@ export default class PlayerExchangingCardsTurnState extends GameState {
         }
 
         return [false, `Unknown action: ${action}`];
+    }
+
+    #setupEventHandlers() {
+        this.gameEvents.on('returnInfluenceToDeck', (args) => {
+            if (args.player == this.player.id) {
+                this.#count++;
+            }
+        });
     }
 }
