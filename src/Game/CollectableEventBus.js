@@ -14,6 +14,7 @@ export default class CollectableEventBus extends EventEmitter {
     }
 
     emit(event, eventBits) {
+        if (event == undefined) { return; }
         if (eventBits == undefined) { eventBits = {}; }
         
         if (!eventBits['date']) {
@@ -33,7 +34,7 @@ export default class CollectableEventBus extends EventEmitter {
     }
 
     collect() {
-        return this.#events;
+        return JSON.parse(JSON.stringify(this.#events));
     }
 
     clear() {

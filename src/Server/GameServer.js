@@ -85,6 +85,14 @@ export default class GameServer {
         this.#games[game.gameID()] = {'game': game, 'created': new Date()};
     }
 
+    replaceGame(game) {
+        const oldGame = this.#games[game.gameID()]['game'];
+        oldGame.unlistenAll();
+
+        this.#games[game.gameID()]['game'] = game;
+
+    }
+
     createGame(gameid) {
         var [game, gameid] = this.#prepareNewGame(gameid);
 
@@ -141,14 +149,16 @@ export default class GameServer {
         return false;
     }
 
-    removeGame(gameID) {
+    removeGame(gameID, silent = false) {
         if (this.#games[gameID]) {
             var game = this.#games[gameID].game;
             delete this.#games[gameID];
             game.unlistenAll();
 
-            for (const socket of Object.values(this.#sockets).filter(s => s.type == 'client')) {
-                socket.handler.gameRemoved(gameID);
+            if (!silent) {
+                for (const socket of Object.values(this.#sockets).filter(s => s.type == 'client')) {
+                    socket.handler.gameRemoved(gameID);
+                }
             }
 
             return true;
@@ -242,6 +252,8 @@ export default class GameServer {
                 game: gameMeta.game.gameID(),
                 serverCreated: gameMeta.created,
                 created: gameMeta.game.createdAt,
+                started: gameMeta.game.started,
+                ended: gameMeta.game.ended,
                 lastEventAt: gameMeta.game.lastEventAt,
                 stalled: gameMeta.game.lastEventAt < new Date(Date.now() - (86400 * 1000)),
                 state: gameMeta.game.state.toString(),

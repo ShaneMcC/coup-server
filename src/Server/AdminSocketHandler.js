@@ -1,5 +1,6 @@
 import process from 'process';
 import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
+import Game from '../Game/Game.js';
 
 export default class AdminSocketHandler {
     #socket;
@@ -65,6 +66,15 @@ export default class AdminSocketHandler {
 
         this.#socket.on('getServerConfig', () => {
             this.doGetServerConfig();
+        });
+
+        this.#socket.on('getGameInfo', (gameID) => {
+            const games = this.#server.getAvailableGames();
+            if (games[gameID]) {
+                const event = {};
+                event[gameID] = games[gameID];
+                this.#socket.emit('gameInfo', event);
+            }
         });
 
         this.#socket.on('listGames', () => {
@@ -262,6 +272,69 @@ export default class AdminSocketHandler {
                 } catch (e) {
                     this.#socket.emit('error', { error: e.message });
                 }
+            });
+        });
+
+        this.#socket.on('nextPlayerTurn', (gameId) => {
+            requireValidGame(gameId, (game) => {
+                game.serverMessage('Admin advanced play to next player.');
+                game.startNextTurn();
+                
+                this.doListGames();
+            });
+        });
+
+        this.#socket.on('startPlayerTurn', (gameId, playerid) => {
+            requireValidGame(gameId, (game) => {
+                if (game.players()[playerid]) {
+                    game.serverMessage('Admin advanced play to specific player.');
+                    game.emit('beginPlayerTurn', { 'player': playerid });
+                }
+                
+                this.doListGames();
+            });
+        });
+
+        this.#socket.on('removePlayerCoins', (gameId, playerid, coins) => {
+            requireValidGame(gameId, (game) => {
+                if (game.players()[playerid]) {
+                    game.serverMessage('Admin removed coins from player.');
+                    game.emit('playerLostCoins', { player: playerid, coins: coins });
+                }
+            });
+        });
+
+        this.#socket.on('givePlayerCoins', (gameId, playerid, coins) => {
+            requireValidGame(gameId, (game) => {
+                if (game.players()[playerid]) {
+                    game.serverMessage('Admin gave coins to player.');
+                    game.emit('playerGainedCoins', { player: playerid, coins: coins });
+                }
+            });
+        });
+
+        this.#socket.on('reloadGame', (gameId) => {
+            requireValidGame(gameId, (_game) => {
+                this.#server.removeGame(gameId, true);
+                this.#server.loadGame(gameId);
+                this.#server.refreshGame(gameId);
+            });
+        });
+
+        this.#socket.on('rollbackLastEvent', (gameId, eventCount = 1) => {
+            requireValidGame(gameId, (game) => {
+                const events = game.collectEvents();
+                for (var i = 0; i < eventCount; i++) {
+                    if (events.length > 2) { // Don't rollback beyond the first event.
+                        events.pop();
+                    }
+                }
+
+                var newGame = new Game();
+                newGame.hydrate(events);
+
+                this.#server.replaceGame(newGame);
+                this.#server.refreshGame(gameId);
             });
         });
 
