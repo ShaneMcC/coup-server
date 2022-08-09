@@ -59,8 +59,15 @@ export default class Game {
         }
     }
 
-    hydrate(events) {
+    hydrate(events, until) {
+        if (until != undefined) {
+            until = until instanceof Date ? until : new Date(until);
+        }
         events.forEach(e => {
+            if (until && e.date) {
+                const eDate = e.date instanceof Date ? e.date : new Date(e.date);
+                if (eDate >= until) { return; }
+            }
             var eventType = e['__type'];
             delete e['__type'];
             this.emit(eventType, e);

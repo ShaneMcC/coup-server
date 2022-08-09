@@ -321,7 +321,7 @@ export default class AdminSocketHandler {
             });
         });
 
-        this.#socket.on('rollbackLastEvent', (gameId, eventCount = 1) => {
+        this.#socket.on('rollbackEvents', (gameId, eventCount = 1) => {
             requireValidGame(gameId, (game) => {
                 const events = game.collectEvents();
                 for (var i = 0; i < eventCount; i++) {
@@ -332,6 +332,18 @@ export default class AdminSocketHandler {
 
                 var newGame = new Game();
                 newGame.hydrate(events);
+
+                this.#server.replaceGame(newGame);
+                this.#server.refreshGame(gameId);
+            });
+        });
+
+        this.#socket.on('rollbackUntil', (gameId, until) => {
+            requireValidGame(gameId, (game) => {
+                const events = game.collectEvents();
+
+                var newGame = new Game();
+                newGame.hydrate(events, until);
 
                 this.#server.replaceGame(newGame);
                 this.#server.refreshGame(gameId);
