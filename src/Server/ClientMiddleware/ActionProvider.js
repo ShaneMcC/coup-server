@@ -139,7 +139,7 @@ export default class GameMasker extends ClientMiddleware {
             if (event.challenger == this.#myPlayerMask || (thisGamePlayers[this.#playerID] && thisGamePlayers[this.#playerID].influence.length == 0)) {
                 this.showActions({});
             } else {
-                var displayActions = { 'CHALLENGE': { name: 'Challenge' }, 'PASS': { name: 'Allow' } };
+                var displayActions = {'PASS': { name: 'Allow' }, 'CHALLENGE': { name: 'Challenge' }};
                 this.showActions(displayActions);
             }
         }
