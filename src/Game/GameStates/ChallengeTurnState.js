@@ -36,11 +36,18 @@ export default class ChallengeTurnState extends GameState {
         game.log('STATE: Challenge Turn ', [this.player, action, this.target]);
     }
 
+    #updatePlayerArrays() {
+        this.player = this.game.players()[this.player.id];
+        this.target = (this.target?.id ? this.game.players()[this.target.id] : undefined);
+    }
+
     toString() {
         return `CanChallenge[${this.player.name} => ${this.action} => ${this.target?.name ? this.target.name : this.target}]`
     }
 
     processAction() {
+        this.#updatePlayerArrays();
+
         // Remove dead players from canCounter list (eg, if they challenged and failed.)
         this.canCounter = Object.fromEntries(Object.entries(this.canCounter).filter(([playerid, _]) => this.game.players()[playerid].influence.length > 0));
 
@@ -92,6 +99,8 @@ export default class ChallengeTurnState extends GameState {
             return [false, `Player ${playerid} has already reacted to this action.`];
         }
 
+        this.#updatePlayerArrays();
+
         if (action == "PASS") {
             this.game.emit('playerPassed', { 'player': playerid });
 
@@ -130,6 +139,7 @@ export default class ChallengeTurnState extends GameState {
             const counterAction = { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid, 'counter': target };
             
             // >1 becuase we haven't yet deleted ourself from the list of players who can counter.
+            // that only happens once we send the event.
             if (Object.keys(this.canChallenge).length > 1) {
                 this.game.emit('playerWillCounter', counterAction);
             } else {

@@ -24,11 +24,17 @@ export default class PlayerChallengedTurnState extends GameState {
         game.log('STATE: PlayerChallenged Turn ', [this.player, action, this.challenger]);
     }
 
+    #updatePlayerArrays() {
+        this.player = this.game.players()[this.player.id];
+        this.challenger = (this.challenger?.id ? this.game.players()[this.challenger.id] : undefined);
+    }
+
     toString() {
         return `PlayerChallenged[${this.player.name} => ${this.action} => ${this.challenger.name}]`
     }
 
     processAction() {
+        this.#updatePlayerArrays();
 
         // If we need to continue our turn, then do so.
         // This will happen if a challenge occurs as a player needs to discard a card
@@ -74,6 +80,8 @@ export default class PlayerChallengedTurnState extends GameState {
         if (playerid != this.player.id) {
             return [false, 'Player was not challenged.'];
         }
+
+        this.#updatePlayerArrays();
 
         var challengedAction;
 

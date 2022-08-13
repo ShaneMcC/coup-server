@@ -11,6 +11,10 @@ export default class PlayerTurnState extends GameState {
         game.log('STATE: Player Turn ', playerid);
     }
 
+    #updatePlayerArrays() {
+        this.player = this.game.players()[this.player.id];
+    }
+
     toString() {
         return `PlayerTurn[${this.player.name}]`
     }
@@ -27,6 +31,8 @@ export default class PlayerTurnState extends GameState {
         if (!this.game.GameActions[action]) {
             return [false, 'Action is not valid.'];
         }
+
+        this.#updatePlayerArrays();
 
         if (this.game.GameActions[action].hasTarget) {
             if (target == undefined) {

@@ -1,6 +1,6 @@
 import ClientMiddleware from './ClientMiddleware.js';
 
-export default class GameMasker extends ClientMiddleware {
+export default class ActionProvider extends ClientMiddleware {
     #server;
     #gameID;
     #socketHandler;

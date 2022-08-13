@@ -12,6 +12,10 @@ export default class PlayerMustDiscardTurnState extends GameState {
         game.log('STATE: PlayerMustDiscard Turn ', [this.player]);
     }
 
+    #updatePlayerArrays() {
+        this.player = this.game.players()[this.player.id];
+    }
+
     toString() {
         return `PlayerMustDiscard[${this.player.name}]`
     }
@@ -25,6 +29,8 @@ export default class PlayerMustDiscardTurnState extends GameState {
             return [false, 'Player does not need to discard influence.'];
         }
 
+        this.#updatePlayerArrays();
+
         if (action == "REVEAL") {
             if (this.player.influence.indexOf(target) == -1) {
                 return [false, 'Player can not reveal influence they do not have.'];
@@ -32,6 +38,11 @@ export default class PlayerMustDiscardTurnState extends GameState {
 
             this.game.emit('discardInfluence', { 'player': this.player.id, 'influence': target });
             this.game.emit('playerFinishedDiscardingInfluence', { 'player': this.player.id });
+
+            this.#updatePlayerArrays();
+            if (this.player.influence.length == 0) {
+                this.game.emit('playerOutOfInfluence', { 'player': this.player.id });
+            }
 
             // Once we've discarded, hand back to the previous action to continue what it was doing.
             if (this.previousState != undefined && this.previousState.processAction) {

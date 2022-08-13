@@ -16,6 +16,10 @@ export default class PlayerExchangingCardsTurnState extends GameState {
         this.#setupEventHandlers();
     }
 
+    #updatePlayerArrays() {
+        this.player = this.game.players()[this.player.id];
+    }
+
     toString() {
         return `PlayerExchangingCards[${this.player.name} => ${this.#exchangesRequired}]`
     }
@@ -28,6 +32,8 @@ export default class PlayerExchangingCardsTurnState extends GameState {
         if (playerid != this.player.id) {
             return [false, 'Player does not need to exchange cards.'];
         }
+
+        this.#updatePlayerArrays();
 
         if (action == "EXCHANGE") {
             if (this.player.influence.indexOf(target) == -1) {
