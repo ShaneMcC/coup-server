@@ -65,6 +65,13 @@ export default class ChallengeTurnState extends GameState {
             this.game.emit('playerPerformedAction', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id });
             this.game.GameActions[this.action].process(this.game, this.player.id, this.target?.id);
         }
+
+        if (this.game.GameCounterActions[this.action]) {
+            this.game.emit('playerPerformedCounterAction', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id });
+            if (this.game.GameCounterActions[this.action].process) {
+                this.game.GameCounterActions[this.action].process(this.game, this.player.id, this.target?.id);
+            }
+        }
     }
 
     processPreviousAction() {
