@@ -3,7 +3,7 @@ export default {
     'counterActions': ['BLOCK_FOREIGN_AID'],
     'anyoneCanCounter': true,
 
-    process(game, player, target) {
-        game.emit('playerGainedCoins', { player: player.id, coins: 2 });
+    process(game, playerid, targetid) {
+        game.emit('playerGainedCoins', { player: playerid, coins: 2 });
     },
 }

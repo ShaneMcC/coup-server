@@ -3,12 +3,12 @@ export default {
     'canChallenge': true,
     'validCards': ['AMBASSADOR'],
 
-    process(game, player) {
+    process(game, playerid) {
         // Give the player 2 additional cards
-        game.emit('allocateNextInfluence', { 'player': player.id });
-        game.emit('allocateNextInfluence', { 'player': player.id });
+        game.emit('allocateNextInfluence', { 'player': playerid });
+        game.emit('allocateNextInfluence', { 'player': playerid });
 
         // They need to silently discard 2 of them
-        game.emit('playerExchangingCards', {player: player.id, count: 2});
+        game.emit('playerExchangingCards', {player: playerid, count: 2});
     },
 }

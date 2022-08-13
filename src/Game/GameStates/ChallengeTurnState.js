@@ -14,11 +14,11 @@ export default class ChallengeTurnState extends GameState {
 
     #hasProcessed = false;
 
-    constructor(game, player, action, target, previousState) {
+    constructor(game, playerid, action, targetid, previousState) {
         super(game);
-        this.player = player;
+        this.player = this.game.players()[playerid];
         this.action = action;
-        this.target = target;
+        this.target = this.game.players()[targetid];
         this.previousState = previousState;
 
         this.canChallenge = {};
@@ -34,7 +34,7 @@ export default class ChallengeTurnState extends GameState {
         }
 
         this.#setupEventHandlers();
-        game.log('STATE: Challenge Turn ', [player, action, target]);
+        game.log('STATE: Challenge Turn ', [this.player, action, this.target]);
     }
 
     toString() {
@@ -64,7 +64,7 @@ export default class ChallengeTurnState extends GameState {
 
         if (Actions[this.action]) {
             this.game.emit('playerPerformedAction', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id });
-            Actions[this.action].process(this.game, this.player, this.target);
+            Actions[this.action].process(this.game, this.player.id, this.target?.id);
         }
     }
 

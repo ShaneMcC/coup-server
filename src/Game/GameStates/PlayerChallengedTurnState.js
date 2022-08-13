@@ -13,16 +13,16 @@ export default class PlayerChallengedTurnState extends GameState {
 
     #revealedInfluence = '';
 
-    constructor(game, player, action, challenger, previousState) {
+    constructor(game, playerid, action, challengerid, previousState) {
         super(game);
-        this.player = player;
+        this.player = this.game.players()[playerid];
         this.action = action;
-        this.challenger = challenger;
+        this.challenger = this.game.players()[challengerid];
         this.previousState = previousState;
         this.#successfulChallenge = false;
 
         this.#setupEventHandlers();
-        game.log('STATE: PlayerChallenged Turn ', [player, action, challenger]);
+        game.log('STATE: PlayerChallenged Turn ', [this.player, action, this.challenger]);
     }
 
     toString() {

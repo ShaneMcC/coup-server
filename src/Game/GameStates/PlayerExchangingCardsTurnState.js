@@ -6,12 +6,12 @@ export default class PlayerExchangingCardsTurnState extends GameState {
     #count = 0;
     #exchangesRequired = 2;
 
-    constructor(game, player, exchangesRequired) {
+    constructor(game, playerid, exchangesRequired) {
         super(game);
-        this.player = player;
+        this.player = this.game.players()[playerid];
         this.#exchangesRequired = exchangesRequired;
 
-        game.log('STATE: PlayerExchangingCards Turn ', [player, exchangesRequired]);
+        game.log('STATE: PlayerExchangingCards Turn ', [this.player, exchangesRequired]);
 
         this.#setupEventHandlers();
     }

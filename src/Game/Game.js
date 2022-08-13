@@ -1,14 +1,8 @@
 import Crypto from 'crypto';
 import CollectableEventBus from './CollectableEventBus.js';
 
-import GameState from './GameStates/GameState.js';
 import NewGameState from './GameStates/NewGameState.js';
-import PlayerTurnState from './GameStates/PlayerTurnState.js';
-import ChallengeTurnState from './GameStates/ChallengeTurnState.js';
-import PlayerChallengedTurnState from './GameStates/PlayerChallengedTurnState.js';
-import PlayerMustDiscardTurnState from './GameStates/PlayerMustDiscardTurnState.js';
-import PlayerExchangingCardsTurnState from './GameStates/PlayerExchangingCardsTurnState.js';
-import GameOverState from './GameStates/GameOverState.js';
+import RegularGameStateHandler from './RegularGameStateHandler.js';
 
 export default class Game {
     #gameDeck = [];
@@ -18,6 +12,7 @@ export default class Game {
 
     #gameEvents = new CollectableEventBus(this);
     state = new NewGameState(this);
+    stateHandler = new RegularGameStateHandler(this);
 
     #gameID = '';
     #nextGameID = undefined;
@@ -81,6 +76,7 @@ export default class Game {
             this.lastEventAt = new Date();
         }
         this.state.handleGameEvent(event, args);
+        this.stateHandler.handleGameEvent(event, args);
         this.#gameEvents.emit(event, args);
     }
 
@@ -243,6 +239,10 @@ export default class Game {
             this.#currentPlayerNumber = -1;
         });
 
+        this.#gameEvents.on('beginPlayerTurn', event => {
+            this.#currentPlayerNumber = Object.keys(this.#players).indexOf(event.player);
+        });
+
         this.#gameEvents.on('setDeck', event => {
             this.#gameDeck = event.deck;
         });
@@ -283,40 +283,6 @@ export default class Game {
             this.#gameDeck.push(event.influence);
         });
 
-        this.#gameEvents.on('gameReady', event => {
-            this.state = new GameState(this);
-        });
-
-        this.#gameEvents.on('beginPlayerTurn', event => {
-            this.#currentPlayerNumber = Object.keys(this.#players).indexOf(event.player);
-
-            this.state = new PlayerTurnState(this, this.#players[event.player]);
-        });
-
-        this.#gameEvents.on('challengeablePlayerAction', event => {
-            this.state = new ChallengeTurnState(this, this.#players[event.player], event.action, this.#players[event.target]);
-        });
-
-        this.#gameEvents.on('counterablePlayerAction', event => {
-            this.state = new ChallengeTurnState(this, this.#players[event.player], event.action, this.#players[event.target]);
-        });
-
-        this.#gameEvents.on('playerCountered', event => {
-            this.state = new ChallengeTurnState(this, this.#players[event.challenger], event.counter, this.#players[event.player], this.state);
-        });
-
-        this.#gameEvents.on('playerChallenged', event => {
-            this.state = new PlayerChallengedTurnState(this, this.#players[event.player], event.action, this.#players[event.challenger], this.state);
-        });
-
-        this.#gameEvents.on('playerMustDiscardInfluence', event => {
-            this.state = new PlayerMustDiscardTurnState(this, this.#players[event.player], this.state);
-        });
-
-        this.#gameEvents.on('playerExchangingCards', event => {
-            this.state = new PlayerExchangingCardsTurnState(this, this.#players[event.player], event.count ? event.count : 2);
-        });
-
         this.#gameEvents.on('playerGainedCoins', event => {
             this.#players[event.player].coins += parseInt(event.coins);
         });
@@ -327,16 +293,6 @@ export default class Game {
 
         this.#gameEvents.on('playerSpentCoins', event => {
             this.#players[event.player].coins -= parseInt(event.coins);
-        });
-
-        this.#gameEvents.on('gameOver', event => {
-            this.state = new GameOverState(this, event);
-            this.ended = true;
-        });
-
-        this.#gameEvents.on('gameEnded', event => {
-            this.state = new GameOverState(this, event);
-            this.ended = true;
         });
 
         this.#gameEvents.on('nextGameAvailable', event => {

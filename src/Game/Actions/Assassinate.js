@@ -6,11 +6,11 @@ export default {
     'validCards': ['ASSASSIN'],
     'counterActions': ['BLOCK_ASSASSINATE'],
 
-    process(game, player, target) {
-        if (target.influence.length > 0) {
-            game.emit('playerMustDiscardInfluence', { player: target.id, reason: 'Assassination' });
+    process(game, playerid, targetid) {
+        if (game.players()[targetid].influence.length > 0) {
+            game.emit('playerMustDiscardInfluence', { player: targetid, reason: 'Assassination' });
         } else {
-            game.emit('playerHasNoInfluenceToDiscard', { player: target.id, reason: 'Assassination' });
+            game.emit('playerHasNoInfluenceToDiscard', { player: targetid, reason: 'Assassination' });
         }
     },
 }

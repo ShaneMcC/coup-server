@@ -4,12 +4,12 @@ export default class PlayerMustDiscardTurnState extends GameState {
     player;
     previousState;
 
-    constructor(game, player, previousState) {
+    constructor(game, playerid, previousState) {
         super(game);
-        this.player = player;
+        this.player = this.game.players()[playerid];
         this.previousState = previousState;
 
-        game.log('STATE: PlayerMustDiscard Turn ', [player]);
+        game.log('STATE: PlayerMustDiscard Turn ', [this.player]);
     }
 
     toString() {

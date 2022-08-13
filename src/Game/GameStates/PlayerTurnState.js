@@ -5,11 +5,11 @@ export default class PlayerTurnState extends GameState {
 
     player;
 
-    constructor(game, player) {
+    constructor(game, playerid) {
         super(game);
-        this.player = player;
+        this.player = this.game.players()[playerid];
 
-        game.log('STATE: Player Turn ', player);
+        game.log('STATE: Player Turn ', playerid);
     }
 
     toString() {
@@ -68,7 +68,7 @@ export default class PlayerTurnState extends GameState {
         } else {
             // Action happens immediately.
             this.game.emit('playerPerformedAction', { 'player': this.player.id, 'action': action, 'target': target });
-            Actions[action].process(this.game, this.player, this.game.players()[target]);
+            Actions[action].process(this.game, this.player.id, target);
 
             // If the action doesn't change the game state, then we can move on to the next turn
             if (this.game.state == this) {
