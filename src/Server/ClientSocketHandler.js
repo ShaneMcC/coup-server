@@ -1,5 +1,6 @@
 import GameMasker from "./ClientMiddleware/GameMasker.js";
 import ActionProvider from "./ClientMiddleware/ActionProvider.js";
+import ActionNamer from "./ClientMiddleware/ActionNamer.js";
 
 export default class ClientSocketHandler {
     #socket;
@@ -22,6 +23,7 @@ export default class ClientSocketHandler {
     loadGame(game) {
         this.#myGames[game.gameID()].masker.preLoadGame();
         this.#myGames[game.gameID()].actionProvider.preLoadGame();
+        this.#myGames[game.gameID()].actionNamer.preLoadGame();
         
         for (const event of game.collectEvents()) {
             this.#listener(event);
@@ -30,6 +32,7 @@ export default class ClientSocketHandler {
         
         this.#myGames[game.gameID()].masker.postLoadGame();
         this.#myGames[game.gameID()].actionProvider.postLoadGame();
+        this.#myGames[game.gameID()].actionNamer.postLoadGame();
     }
 
     addKnownGame(gameID, playerID) {
@@ -37,6 +40,7 @@ export default class ClientSocketHandler {
             'playerID': playerID,
             'actionProvider': new ActionProvider(this.#server, this, gameID, playerID),
             'masker': new GameMasker(this.#server, this, gameID, playerID),
+            'actionNamer': new ActionNamer(this.#server, this, gameID, playerID),
         };
     }
 
@@ -139,6 +143,7 @@ export default class ClientSocketHandler {
                 try {
                     [action, target] = this.#myGames[gameid].masker.getActionTarget(action, target);
                     [action, target] = this.#myGames[gameid].actionProvider.getActionTarget(action, target);
+                    [action, target] = this.#myGames[gameid].actionNamer.getActionTarget(action, target);
 
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
                 } catch (e) {
@@ -210,11 +215,13 @@ export default class ClientSocketHandler {
 
         thisGame.masker.preEmitHandler(event);
         thisGame.actionProvider.preEmitHandler(event);
+        thisGame.actionNamer.preEmitHandler(event);
 
         // Emit the event.
         this.#socket.emit('handleGameEvent', event);
 
         thisGame.masker.postEmitHandler(event);
         thisGame.actionProvider.postEmitHandler(event);
+        thisGame.actionNamer.postEmitHandler(event);
     }
 }

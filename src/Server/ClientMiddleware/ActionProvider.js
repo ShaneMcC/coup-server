@@ -104,7 +104,7 @@ export default class GameMasker extends ClientMiddleware {
                     displayActions['CHALLENGE'] = { name: 'Challenge' };
                 }
 
-                if (thisGame.GameActions[event.action].counterActions && (thisGame.GameActions[event.action].anyoneCanCounter || event.target == this.#myPlayerMask)) {
+                if (thisGame.GameActions[event.action]?.counterActions && (thisGame.GameActions[event.action].anyoneCanCounter || event.target == this.#myPlayerMask)) {
                     for (const ca of thisGame.GameActions[event.action].counterActions) {
                         displayActions[ca] = {
                             name: thisGame.GameCounterActions[ca].name,
