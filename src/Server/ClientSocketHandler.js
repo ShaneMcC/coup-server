@@ -143,6 +143,7 @@ export default class ClientSocketHandler {
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
                 } catch (e) {
                     this.#socket.emit('actionError', { error: e.message });
+                    console.log('Action Error: ', [gameid, this.#myGames[gameid].playerID, action, target], e);
                 }
             }
         });
