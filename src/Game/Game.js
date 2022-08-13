@@ -5,6 +5,7 @@ import NewGameState from './GameStates/NewGameState.js';
 import RegularGameStateHandler from './RegularGameStateHandler.js';
 
 import { DefaultActions, DefaultCounterActions } from './Actions.js';
+import { DefaultCards } from './Cards.js';
 
 import clone from 'just-clone';
 
@@ -29,6 +30,7 @@ export default class Game {
 
     GameActions = clone(DefaultActions);
     GameCounterActions = clone(DefaultCounterActions);
+    GameCards = clone(DefaultCards);
 
     constructor() {
         this.addHandlers();

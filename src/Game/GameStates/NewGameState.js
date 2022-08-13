@@ -1,5 +1,4 @@
 import GameState from './GameState.js';
-import Cards from '../Cards.js';
 
 export default class NewGameState extends GameState {
 
@@ -60,9 +59,11 @@ export default class NewGameState extends GameState {
             }
         }
 
+        this.game.emit('startGame');
+
         // Get a deck of cards.
         var deck = [];
-        for (const [card, _] of Object.entries(Cards)) {
+        for (const [card, _] of Object.entries(this.game.GameCards)) {
             deck.push(card);
             deck.push(card);
             deck.push(card);
@@ -74,7 +75,6 @@ export default class NewGameState extends GameState {
             }
         };
 
-        this.game.emit('startGame');
         this.game.emit('setDeck', { 'deck':  this.game.getShuffledDeck(deck)});
 
         // Allocate cards and coins to players.
