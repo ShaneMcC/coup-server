@@ -128,7 +128,9 @@ export default class ChallengeTurnState extends GameState {
             // https://boardgamegeek.com/thread/1059909/multiple-counters-foreign-aid
 
             const counterAction = { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid, 'counter': target };
-            if (Object.keys(this.canChallenge).length > 0) {
+            
+            // >1 becuase we haven't yet deleted ourself from the list of players who can counter.
+            if (Object.keys(this.canChallenge).length > 1) {
                 this.game.emit('playerWillCounter', counterAction);
             } else {
                 this.game.emit('playerCountered', counterAction);
