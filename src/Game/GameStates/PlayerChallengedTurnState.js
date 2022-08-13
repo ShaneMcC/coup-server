@@ -88,7 +88,7 @@ export default class PlayerChallengedTurnState extends GameState {
                 return [false, 'Player can not reveal influence they do not have.'];
             }
 
-            if (challengedAction.validCards.indexOf(target) > -1) {
+            if (challengedAction.validCards?.indexOf(target) > -1) {
                 this.game.emit('playerPassedChallenge', { 'player': this.player.id, 'influence': target });
                 this.game.emit('playerMustDiscardInfluence', { 'player': this.challenger.id, 'reason': 'Player unsuccessfully challenged' });
             } else {
