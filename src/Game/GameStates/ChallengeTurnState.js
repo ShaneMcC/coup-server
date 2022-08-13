@@ -1,5 +1,4 @@
 
-import { Actions, CounterActions } from '../Actions.js';
 import GameState from './GameState.js';
 
 export default class ChallengeTurnState extends GameState {
@@ -27,7 +26,7 @@ export default class ChallengeTurnState extends GameState {
             // Only allow players who are alive and not the active player to challenge/pass
             if (p.influence.length > 0 && playerID != this.player.id) {
                 this.canChallenge[playerID] = true;
-                if (Actions[this.action] && ((this.target && this.target.id == playerID) || Actions[this.action].anyoneCanCounter)) {
+                if (this.game.GameActions[this.action] && ((this.target && this.target.id == playerID) || this.game.GameActions[this.action].anyoneCanCounter)) {
                     this.canCounter[playerID] = true;
                 }
             }
@@ -62,9 +61,9 @@ export default class ChallengeTurnState extends GameState {
 
         this.game.log('STATE: Challenge/ProcessAction ', [this.player, this.action, this.target]);
 
-        if (Actions[this.action]) {
+        if (this.game.GameActions[this.action]) {
             this.game.emit('playerPerformedAction', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id });
-            Actions[this.action].process(this.game, this.player.id, this.target?.id);
+            this.game.GameActions[this.action].process(this.game, this.player.id, this.target?.id);
         }
     }
 
@@ -101,17 +100,17 @@ export default class ChallengeTurnState extends GameState {
             return [true, ''];
         }
 
-        if (action == "CHALLENGE" && !this.counterOnly && Actions[this.action] && Actions[this.action].canChallenge) {
+        if (action == "CHALLENGE" && !this.counterOnly && this.game.GameActions[this.action] && this.game.GameActions[this.action].canChallenge) {
             this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid });
             return [true, ''];
         }
 
-        if (action == "CHALLENGE" && !this.counterOnly && CounterActions[this.action]) {
+        if (action == "CHALLENGE" && !this.counterOnly && this.game.GameCounterActions[this.action]) {
             this.game.emit('playerChallenged', { 'player': this.player.id, 'action': this.action, 'target': this.target?.id, 'challenger': playerid });
             return [true, ''];
         }
 
-        if (action == "COUNTER" && Actions[this.action] && ((this.target && this.target.id == playerid) || Actions[this.action].anyoneCanCounter) && Actions[this.action].counterActions && Actions[this.action].counterActions.indexOf(target) > -1) {
+        if (action == "COUNTER" && this.game.GameActions[this.action] && ((this.target && this.target.id == playerid) || this.game.GameActions[this.action].anyoneCanCounter) && this.game.GameActions[this.action].counterActions && this.game.GameActions[this.action].counterActions.indexOf(target) > -1) {
             // Technically we should collect all the COUNTER claims, then allow challenging them 
             // as a whole, not a one-by-one thing like we do here.
             // 

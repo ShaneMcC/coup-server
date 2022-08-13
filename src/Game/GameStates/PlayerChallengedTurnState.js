@@ -1,4 +1,3 @@
-import { Actions, CounterActions } from '../Actions.js';
 import GameState from './GameState.js';
 
 export default class PlayerChallengedTurnState extends GameState {
@@ -45,11 +44,11 @@ export default class PlayerChallengedTurnState extends GameState {
                 this.game.emit('discardInfluence', { 'player': this.player.id, 'influence': this.#revealedInfluence });
             }
 
-            if (Actions[this.action] && this.#successfulChallenge) {
+            if (this.game.GameActions[this.action] && this.#successfulChallenge) {
                 // If this was a challenge on an action, and they passed
                 // the they get to do the action.
                 this.previousState.processAction();
-            } else if (CounterActions[this.action] && !this.#successfulChallenge) {
+            } else if (this.game.GameCounterActions[this.action] && !this.#successfulChallenge) {
                 // If this was a challenge on a counter action, and it failed
                 // then the original action gets to happen.
                 this.previousState.processPreviousAction();
@@ -78,10 +77,10 @@ export default class PlayerChallengedTurnState extends GameState {
 
         var challengedAction;
 
-        if (Actions[this.action]) {
-            challengedAction = Actions[this.action];
-        } else if (CounterActions[this.action]) {
-            challengedAction = CounterActions[this.action];
+        if (this.game.GameActions[this.action]) {
+            challengedAction = this.game.GameActions[this.action];
+        } else if (this.game.GameCounterActions[this.action]) {
+            challengedAction = this.game.GameCounterActions[this.action];
         }
 
         if (action == "REVEAL") {

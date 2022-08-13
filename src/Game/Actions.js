@@ -6,7 +6,7 @@ import TaxAction from './Actions/Tax.js';
 import ExchangeAction from './Actions/Exchange.js';
 import AssassinateAction from './Actions/Assassinate.js';
 
-export const Actions = {
+export const DefaultActions = {
     INCOME: IncomeAction,
     COUP: CoupAction,
     FOREIGN_AID: ForeignAidAction,
@@ -16,7 +16,7 @@ export const Actions = {
     ASSASSINATE: AssassinateAction,
 }
 
-export const CounterActions = {
+export const DefaultCounterActions = {
     BLOCK_FOREIGN_AID: {
         'name': 'Block Foreign Aid',
         'validCards': ['DUKE'],

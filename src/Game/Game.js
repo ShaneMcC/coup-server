@@ -4,6 +4,10 @@ import CollectableEventBus from './CollectableEventBus.js';
 import NewGameState from './GameStates/NewGameState.js';
 import RegularGameStateHandler from './RegularGameStateHandler.js';
 
+import { DefaultActions, DefaultCounterActions } from './Actions.js';
+
+import clone from 'just-clone';
+
 export default class Game {
     #gameDeck = [];
     #players = {};
@@ -22,6 +26,9 @@ export default class Game {
     createdAt = new Date(0);
     lastEventAt = new Date(0);
     debug = false;
+
+    GameActions = clone(DefaultActions);
+    GameCounterActions = clone(DefaultCounterActions);
 
     constructor() {
         this.addHandlers();

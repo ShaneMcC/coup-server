@@ -1,6 +1,5 @@
 import { When, Then } from '@cucumber/cucumber'
 import { strict as assert } from 'assert'
-import { Actions, CounterActions } from '../../src/Game/Actions.js';
 import ChallengeTurnState from '../../src/Game/GameStates/ChallengeTurnState.js';
 
 When('{word} wants to claim {word}', function (player, action) {
@@ -40,9 +39,9 @@ When(/([^\s]+) challenges the (Action|Counter)/, function (player, thing) {
         throw new Error('Game does not require any challenging.');
     }
 
-    if (thing == 'Action' && Actions[this.game.state.action] == undefined) {
+    if (thing == 'Action' && this.game.GameActions[this.game.state.action] == undefined) {
         throw new Error(`Player is not challenging an action: ${this.game.state.toString()}`)
-    } else if (thing == 'Counter' && CounterActions[this.game.state.action] == undefined) {
+    } else if (thing == 'Counter' && this.game.GameCounterActions[this.game.state.action] == undefined) {
         throw new Error(`Player is not challenging a counter: ${this.game.state.toString()}`)
     }
     
@@ -54,9 +53,9 @@ When(/all players pass the (Action|Counter)/, function (thing) {
         throw new Error('Game does not require any passing.');
     }
 
-    if (thing == 'Action' && Actions[this.game.state.action] == undefined) {
+    if (thing == 'Action' && this.game.GameActions[this.game.state.action] == undefined) {
         throw new Error(`Player is not passing an action: ${this.game.state.toString()}`)
-    } else if (thing == 'Counter' && CounterActions[this.game.state.action] == undefined) {
+    } else if (thing == 'Counter' && this.game.GameCounterActions[this.game.state.action] == undefined) {
         throw new Error(`Player is not passing a counter: ${this.game.state.toString()}`)
     }
     
@@ -76,9 +75,9 @@ When(/([^\s]+) passes the (Action|Counter)/, function (player, thing) {
         throw new Error('Game does not require any passing.');
     }
 
-    if (thing == 'Action' && Actions[this.game.state.action] == undefined) {
+    if (thing == 'Action' && this.game.GameActions[this.game.state.action] == undefined) {
         throw new Error(`Player is not passing an action: ${this.game.state.toString()}`)
-    } else if (thing == 'Counter' && CounterActions[this.game.state.action] == undefined) {
+    } else if (thing == 'Counter' && this.game.GameCounterActions[this.game.state.action] == undefined) {
         throw new Error(`Player is not passing a counter: ${this.game.state.toString()}`)
     }
     this.game.doPlayerAction(player, 'PASS');
