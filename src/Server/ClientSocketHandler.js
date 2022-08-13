@@ -21,26 +21,28 @@ export default class ClientSocketHandler {
     }
 
     loadGame(game) {
-        this.#myGames[game.gameID()].masker.preLoadGame();
-        this.#myGames[game.gameID()].actionProvider.preLoadGame();
-        this.#myGames[game.gameID()].actionNamer.preLoadGame();
+        for (const middleware of Object.values(this.#myGames[game.gameID()].middleware)) {
+            middleware.preLoadGame();
+        }
         
         for (const event of game.collectEvents()) {
             this.#listener(event);
         }
         this.#socket.emit('gameLoaded', { gameID: game.gameID() });
         
-        this.#myGames[game.gameID()].masker.postLoadGame();
-        this.#myGames[game.gameID()].actionProvider.postLoadGame();
-        this.#myGames[game.gameID()].actionNamer.postLoadGame();
+        for (const middleware of Object.values(this.#myGames[game.gameID()].middleware)) {
+            middleware.postLoadGame();
+        }
     }
 
     addKnownGame(gameID, playerID) {
         this.#myGames[gameID] = {
             'playerID': playerID,
-            'actionProvider': new ActionProvider(this.#server, this, gameID, playerID),
-            'masker': new GameMasker(this.#server, this, gameID, playerID),
-            'actionNamer': new ActionNamer(this.#server, this, gameID, playerID),
+            'middleware': {
+                'masker': new GameMasker(this.#server, this, gameID, playerID),
+                'actionProvider': new ActionProvider(this.#server, this, gameID, playerID),
+                'actionNamer': new ActionNamer(this.#server, this, gameID, playerID),
+            },
         };
     }
 
@@ -141,9 +143,9 @@ export default class ClientSocketHandler {
 
             if (game != undefined && this.#myGames[gameid].playerID != undefined) {
                 try {
-                    [action, target] = this.#myGames[gameid].masker.getActionTarget(action, target);
-                    [action, target] = this.#myGames[gameid].actionProvider.getActionTarget(action, target);
-                    [action, target] = this.#myGames[gameid].actionNamer.getActionTarget(action, target);
+                    for (const middleware of Object.values(this.#myGames[gameid].middleware)) {
+                        [action, target] = middleware.getActionTarget(action, target);
+                    }
 
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
                 } catch (e) {
@@ -213,15 +215,15 @@ export default class ClientSocketHandler {
     handleGameEvent(event) {
         var thisGame = this.#myGames[event.game];
 
-        thisGame.masker.preEmitHandler(event);
-        thisGame.actionProvider.preEmitHandler(event);
-        thisGame.actionNamer.preEmitHandler(event);
+        for (const middleware of Object.values(thisGame.middleware)) {
+            middleware.preEmitHandler(event);
+        }
 
         // Emit the event.
         this.#socket.emit('handleGameEvent', event);
 
-        thisGame.masker.postEmitHandler(event);
-        thisGame.actionProvider.postEmitHandler(event);
-        thisGame.actionNamer.postEmitHandler(event);
+        for (const middleware of Object.values(thisGame.middleware)) {
+            middleware.postEmitHandler(event);
+        }
     }
 }
