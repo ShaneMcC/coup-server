@@ -1,4 +1,3 @@
-import { Actions as PlayerTurnActions, CounterActions } from "../../Game/Actions.js";
 import ClientMiddleware from './ClientMiddleware.js';
 
 export default class GameMasker extends ClientMiddleware {
@@ -48,7 +47,8 @@ export default class GameMasker extends ClientMiddleware {
     postEmitHandler(event) {
         if (!this.enabled()) { return; }
 
-        var thisGamePlayers = this.#server.getGame(event.game)?.players();
+        var thisGame = this.#server.getGame(event.game);
+        var thisGamePlayers = thisGame?.players();
 
         if (event.__type == 'addPlayer' && event.self) {
             this.#myPlayerMask = event.id;
@@ -85,9 +85,9 @@ export default class GameMasker extends ClientMiddleware {
         if (event.__type == 'beginPlayerTurn') {
             if (event.player == this.#myPlayerMask) {
                 if (thisGamePlayers[this.#playerID].coins >= 10) {
-                    this.showActions({'COUP': PlayerTurnActions.COUP});
+                    this.showActions({'COUP': thisGame.GameActions.COUP});
                 } else {
-                    this.showActions(PlayerTurnActions);
+                    this.showActions(thisGame.GameActions);
                 }
             } else {
                 this.showActions({});
@@ -104,13 +104,13 @@ export default class GameMasker extends ClientMiddleware {
                     displayActions['CHALLENGE'] = { name: 'Challenge' };
                 }
 
-                if (PlayerTurnActions[event.action].counterActions && (PlayerTurnActions[event.action].anyoneCanCounter || event.target == this.#myPlayerMask)) {
-                    for (const ca of PlayerTurnActions[event.action].counterActions) {
+                if (thisGame.GameActions[event.action].counterActions && (thisGame.GameActions[event.action].anyoneCanCounter || event.target == this.#myPlayerMask)) {
+                    for (const ca of thisGame.GameActions[event.action].counterActions) {
                         displayActions[ca] = {
-                            name: CounterActions[ca].name,
+                            name: thisGame.GameCounterActions[ca].name,
                             target: ca,
                             action: 'COUNTER',
-                            validCards: CounterActions[ca].validCards,
+                            validCards: thisGame.GameCounterActions[ca].validCards,
                         }
                     }
                 }
