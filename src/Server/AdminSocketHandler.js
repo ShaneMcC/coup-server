@@ -17,8 +17,10 @@ export default class AdminSocketHandler {
     }
 
     doListGames() {
-        this.#socket.emit('gamesAvailable', this.#server.getAvailableGames());
-        this.#socket.emit('savedGamesAvailable', this.#server.getSavedGames());
+        const sortedObject = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc }, {});
+
+        this.#socket.emit('gamesAvailable', sortedObject(this.#server.getAvailableGames()));
+        this.#socket.emit('savedGamesAvailable', sortedObject(this.#server.getSavedGames()));
     }
 
     doGetServerConfig() {
