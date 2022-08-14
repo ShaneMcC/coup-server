@@ -286,6 +286,33 @@ export default class AdminSocketHandler {
             });
         });
 
+        this.#socket.on('removePlayer', (gameId, playerid) => {
+            requireValidGame(gameId, (game) => {
+                if (!game.ended && game.players()[playerid]) {
+                    const player = game.players()[playerid];
+
+                    if (game.started) {
+                        game.serverMessage(`Admin removed player: ${player.name}`);
+                        for (const influence of player.influence) {
+                            game.emit('discardInfluence', { 'player': player.id, 'influence': influence });
+                        }
+                        game.emit('playerOutOfInfluence', { 'player': player.id });
+
+                        // If player was current player, advance to next player.
+                        // If there is only now 1 remaining valid player, declare them the winner.
+                        if (game.currentPlayerID() == player.id || game.validPlayers() == 1) {
+                            game.startNextTurn();
+                        }
+                    } else {
+                        game.removePlayer(playerid, 'Removed by admin.');
+                    }
+                }
+                
+                this.doListGames();
+            });
+        });
+
+
         this.#socket.on('startPlayerTurn', (gameId, playerid) => {
             requireValidGame(gameId, (game) => {
                 if (game.players()[playerid]) {

@@ -55,12 +55,10 @@ export default class RegularGameStateHandler {
 
         this.#gameEvents.on('gameOver', event => {
             this.game.state = new GameOverState(this.game, event);
-            this.game.ended = true;
         });
 
         this.#gameEvents.on('gameEnded', event => {
             this.game.state = new GameOverState(this.game, event);
-            this.game.ended = true;
         });
     }
 }

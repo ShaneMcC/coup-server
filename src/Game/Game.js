@@ -181,9 +181,7 @@ export default class Game {
         throw new Error('No valid players found.');
     }
 
-    startNextTurn() {
-        this.#advancePlayer();
-
+    validPlayers() {
         var validPlayers = 0;
         for (const [_, player] of Object.entries(this.#players)) {
             if (player.influence.length > 0) {
@@ -191,7 +189,13 @@ export default class Game {
             }
         }
 
-        if (validPlayers == 1) {
+        return validPlayers;
+    }
+
+    startNextTurn() {
+        this.#advancePlayer();
+
+        if (this.validPlayers() == 1) {
             this.emit('gameOver', { 'winner': this.currentPlayerID() });
         } else {
             this.emit('beginPlayerTurn', { 'player': this.currentPlayerID() });
@@ -306,6 +310,14 @@ export default class Game {
 
         this.#gameEvents.on('nextGameAvailable', event => {
             this.#nextGameID = event.nextGameID;
+        });
+
+        this.#gameEvents.on('gameOver', event => {
+            this.ended = true;
+        });
+
+        this.#gameEvents.on('gameEnded', event => {
+            this.ended = true;
         });
     }
 }

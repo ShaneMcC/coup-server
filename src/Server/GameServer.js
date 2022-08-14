@@ -82,7 +82,7 @@ export default class GameServer {
     }
 
     #addToGamesDict(game) {
-        this.#games[game.gameID()] = {'game': game, 'created': new Date()};
+        this.#games[game.gameID()] = { 'game': game, 'created': new Date() };
     }
 
     replaceGame(game) {
@@ -114,7 +114,7 @@ export default class GameServer {
             testGame.doPlayerAction(players[0], 'STARTGAME');
 
             // Specifically start with the first player not random.
-            testGame.emit('beginPlayerTurn', {'player': Object.keys(testGame.players())[0] });
+            testGame.emit('beginPlayerTurn', { 'player': Object.keys(testGame.players())[0] });
 
             for (const player of players) {
                 testGame.doPlayerAction(player, 'INCOME');
@@ -208,7 +208,7 @@ export default class GameServer {
 
     loadGame(gameID) {
         if (gameID == null || gameID == undefined) { return false; }
-        
+
         if (fs.existsSync(this.appConfig.saveLocation)) {
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
 
@@ -216,23 +216,29 @@ export default class GameServer {
                 try {
                     var events = JSON.parse(fs.readFileSync(gameFile));
                 } catch (e) {
+                    console.log(`There was an error parsing game json for ${gameID}: `, e);
                     return false;
                 }
-                
+
                 if (events.length > 0) {
-                    var [game, _] = this.#prepareNewGame(gameID);
+                    try {
+                        var [game, _] = this.#prepareNewGame(gameID);
 
-                    if (events[0].__type == 'gameCreated') {
-                        // Ensure this game is created with the correct ID internally.
-                        var createGame = events.splice(0, 1)[0];
-                        createGame.game = gameID;
-                        game.hydrate([createGame]);
+                        if (events[0].__type == 'gameCreated') {
+                            // Ensure this game is created with the correct ID internally.
+                            var createGame = events.splice(0, 1)[0];
+                            createGame.game = gameID;
+                            game.hydrate([createGame]);
 
-                        // Hydrate with the rest of the events.
-                        game.hydrate(events);
-                        this.#addToGamesDict(game);
+                            // Hydrate with the rest of the events.
+                            game.hydrate(events);
+                            this.#addToGamesDict(game);
 
-                        return true;
+                            return true;
+                        }
+                    } catch (e) {
+                        console.log(`There was an error loading game json for ${gameID}: `, e);
+                        return false;
                     }
                 }
             }
