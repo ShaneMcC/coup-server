@@ -87,7 +87,7 @@ export default class GameMasker extends ClientMiddleware {
         if (event.__type == 'setDeck') {
             this.#gameDeck = event.deck;
 
-            event.deck = Array(event.deck.length - 1).fill("UNKNOWN");
+            event.deck = Array(event.deck.length).fill("UNKNOWN");
         }
 
         // Modify allocateNextInfluence to actually be useful for the client if it is us
