@@ -87,8 +87,9 @@ export default class ActionProvider extends ClientMiddleware {
 
                 pregameActions['SETNAME'] = { name: 'Change Name', prompt: 'Enter new name' };
 
-                if (Object.values(thisGamePlayers).filter(p => !p.ready).length == 0) {
-                    pregameActions['STARTGAME'] = { name: "Start Game" };
+                const playerValues = Object.values(thisGamePlayers);
+                if (playerValues.filter(p => !p.ready).length == 0) {
+                    pregameActions['STARTGAME'] = { name: "Start Game", disabled: (playerValues.length < 3 || playerValues.length > 10)};
                 }
             }
 
