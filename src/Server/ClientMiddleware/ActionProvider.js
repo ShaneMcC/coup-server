@@ -44,6 +44,27 @@ export default class ActionProvider extends ClientMiddleware {
         }
     }
 
+    validAction(validCards, playerInfluence) {
+        // If validcards is undefined, then anyone can do the action
+        if (validCards == undefined) { return true; }
+        
+        // If validCards is empty, no one can do the action.
+        if (validCards.length == 0) { return false; }
+
+        // Now go through all the influence the player has, and if they
+        // are considered valid, then allow the action.
+        if (playerInfluence?.length > 0) {
+            for (const i of playerInfluence) {
+                if (validCards.indexOf(i) > -1) {
+                    return true;
+                }
+            }
+        }
+
+        // Player had no valid cards
+        return false;
+    }
+
     postEmitHandler(event) {
         if (!this.enabled()) { return; }
 
@@ -87,7 +108,11 @@ export default class ActionProvider extends ClientMiddleware {
                 if (thisGamePlayers[this.#playerID].coins >= 10) {
                     this.showActions({'COUP': thisGame.GameActions.COUP});
                 } else {
-                    this.showActions(thisGame.GameActions);
+                    const displayActions = JSON.parse(JSON.stringify(thisGame.GameActions));
+                    for (const a in displayActions) {
+                        displayActions[a].name += this.validAction(displayActions[a].validCards, thisGamePlayers[this.#playerID].influence) ? '' : ' (Bluff)';
+                    }
+                    this.showActions(displayActions);
                 }
             } else {
                 this.showActions({});
@@ -100,14 +125,16 @@ export default class ActionProvider extends ClientMiddleware {
             } else {
                 var displayActions = {'PASS': { name: 'Allow' }};
 
-                if (event.__type == 'challengeablePlayerAction' || event.__type == 'counterablePlayerAction') {
+                if (event.__type == 'challengeablePlayerAction') {
+                    displayActions['CHALLENGE'] = { name: 'Challenge' };
+                } else if (event.__type == 'counterablePlayerAction' && thisGame.GameActions[event.action].validCards?.length > 0) {
                     displayActions['CHALLENGE'] = { name: 'Challenge' };
                 }
 
                 if (thisGame.GameActions[event.action]?.counterActions && (thisGame.GameActions[event.action].anyoneCanCounter || event.target == this.#myPlayerMask)) {
                     for (const ca of thisGame.GameActions[event.action].counterActions) {
                         displayActions[ca] = {
-                            name: thisGame.GameCounterActions[ca].name,
+                            name: thisGame.GameCounterActions[ca].name + (this.validAction(thisGame.GameCounterActions[ca].validCards, thisGamePlayers[this.#playerID].influence) ? '' : ' (Bluff)'),
                             target: ca,
                             action: 'COUNTER',
                             validCards: thisGame.GameCounterActions[ca].validCards,
