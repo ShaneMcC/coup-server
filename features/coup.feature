@@ -17,7 +17,10 @@ Feature: Can a player coup another player
 
   Scenario: Bob can not take income because they have over 10 coins.
     Given it is Bobs turn
-    When Bob wants to try to claim INCOME
+    When Bob wants to claim INCOME
+    Then the ClientEvents for Bob contain the following:
+      | __type      |
+      | actionError |
     Then the GameEvents do not contain the following:
       | __type            | player | coins |
       | playerGainedCoins | Bob    | 1     |

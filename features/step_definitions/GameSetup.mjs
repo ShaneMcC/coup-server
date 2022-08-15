@@ -192,11 +192,11 @@ Then(/the GameSetupEvents (do not contain|contain) the following:/, function (ma
     handleEventsCheck(this.setupEvents, dataTable, (matchType == 'contain'));
 });
 
-Then(/the ClientEvents for {word} (do not contain|contain) the following:/, function (player, matchType, dataTable) {
+Then(/the ClientEvents for ([^\s]+) (do not contain|contain) the following:/, function (player, matchType, dataTable) {
     handleEventsCheck(this.clients[player]?.socket.clientEmitter.collect(), dataTable, (matchType == 'contain'));
 });
 
-Then(/the ClientSetupEvents for {word} (do not contain|contain) the following:/, function (player, matchType, dataTable) {
+Then(/the ClientSetupEvents for ([^\s]+) (do not contain|contain) the following:/, function (player, matchType, dataTable) {
     handleEventsCheck(this.clients[player]?.setupEvents, dataTable, (matchType == 'contain'));
 });
 
