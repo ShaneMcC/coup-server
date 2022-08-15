@@ -64,3 +64,35 @@ Feature: Can a player claim Foreign Aid correctly?
     And Alice has 1 influence remaining
     And Bob has 2 influence remaining
     And Bob is the current player
+
+
+  Scenario: When both Bob and Charlie counter Alices Foreign Aid, Bob should be the challenger.
+    When Alice wants to claim FOREIGN_AID
+    When Bob counters with BLOCK_FOREIGN_AID
+    When Charlie counters with BLOCK_FOREIGN_AID
+    Then the GameEvents contain the following:
+      | __type            | challenger |
+      | playerWillCounter | Bob        |
+      | playerWillCounter | Charlie    |
+      | playerCountered   | Bob        |
+
+  Scenario: Both Bob and Charlie counter Alices Foreign Aid, Bob First, Alice fails to challenge.
+    When Alice wants to claim FOREIGN_AID
+    When Bob counters with BLOCK_FOREIGN_AID
+    When Charlie counters with BLOCK_FOREIGN_AID
+    When Alice challenges the Counter
+    Then Bob reveals DUKE
+    Then Alice reveals Assassin
+    Then Bob is the current player
+
+  Scenario: Both Bob and Charlie counter Alices Foreign Aid, Charlie First, Alice passes the first challenge, but fails the second challenge.
+    When Alice wants to claim FOREIGN_AID
+    When Charlie counters with BLOCK_FOREIGN_AID
+    When Bob counters with BLOCK_FOREIGN_AID
+    When Alice challenges the Counter
+    Then Charlie reveals Captain
+    When Alice challenges the Counter
+    Then Bob reveals DUKE
+    Then Alice reveals Assassin
+    Then debug GameEvents
+    Then Bob is the current player
