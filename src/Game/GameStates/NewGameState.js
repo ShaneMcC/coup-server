@@ -27,8 +27,12 @@ export default class NewGameState extends GameState {
         }
 
         if (action == 'SETNAME') {
-            this.game.emit('setPlayerName', { 'player': playerid, 'name': target });
-            return [true, ''];
+            if (target != undefined && target != null && target.length > 0) {
+                this.game.emit('setPlayerName', { 'player': playerid, 'name': target.substring(0, 20) });
+                return [true, ''];
+            } else {
+                return [false, 'Name is not valid.'];
+            }
         }
 
         if (action == 'KICK') {

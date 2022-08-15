@@ -102,7 +102,7 @@ export default class Game {
     }
 
     addPlayer(name) {
-        if (this.started) { return undefined; }
+        if (this.started || name == undefined || name == null || name.length < 1) { return undefined; }
 
         var playerID;
         do {
@@ -207,15 +207,21 @@ export default class Game {
     }
 
     adminMessage(message) {
-        this.emit('adminMessage', { message: message });
+        if (message != undefined && message != null && message.length > 0) {
+            this.emit('adminMessage', { message: message.substring(0, 1024) });
+        }
     }
 
     serverMessage(message) {
-        this.emit('serverMessage', { message: message });
+        if (message != undefined && message != null && message.length > 0) {
+            this.emit('serverMessage', { message: message.substring(0, 1024) });
+        }
     }
 
     chatMessage(playerid, message) {
-        this.emit('chatMessage', { player: playerid, message: message });
+        if (message != undefined && message != null && message.length > 0) {
+            this.emit('chatMessage', { player: playerid, message: message.substring(0, 1024) });
+        }
     }
 
     addHandlers() {
