@@ -1,5 +1,5 @@
 import Crypto from 'crypto';
-import CollectableEventBus from './CollectableEventBus.js';
+import GameEventBus from './GameEventBus.js';
 
 import NewGameState from './GameStates/NewGameState.js';
 import RegularGameStateHandler from './RegularGameStateHandler.js';
@@ -15,7 +15,7 @@ export default class Game {
     #playerIDs = [];
     #currentPlayerNumber = -1;
 
-    #gameEvents = new CollectableEventBus(this);
+    #gameEvents = new GameEventBus(this);
     state = new NewGameState(this);
     stateHandler = new RegularGameStateHandler(this);
 

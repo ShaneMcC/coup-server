@@ -10,7 +10,9 @@ export default class AdminSocketHandler {
         this.#server = server;
         this.#socket = socket;
 
-        console.log(`New admin client: ${socket.id}`);
+        if (!this.#server.appConfig.silent) {
+            console.log(`New admin client: ${socket.id}`);
+        }
         this.#socket.emit('clientConnected', { socketID: socket.id, 'type': 'admin', 'serverVersion': this.#server.appConfig.buildConfig.gitVersion });
 
         this.addSocketHandlers();
@@ -264,7 +266,9 @@ export default class AdminSocketHandler {
 
         this.#socket.on('disconnect', () => {
             this.#server.removeSocket(this.#socket.id);
-            console.log(`Client removed: ${this.#socket.id}`);
+            if (!this.#server.appConfig.silent) {
+                console.log(`Client removed: ${this.#socket.id}`);
+            }
         });
 
         this.#socket.on('adminAction', (gameid, playerid, action, target) => {

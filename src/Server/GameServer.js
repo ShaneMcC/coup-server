@@ -37,7 +37,9 @@ export default class GameServer {
         });
 
         if (appConfig.adminAuthToken && appConfig.adminAuthToken.length > 0) {
-            console.log(`Using admin auth token: ${appConfig.adminAuthToken}`)
+            if (!appConfig.silent) {
+                console.log(`Using admin auth token: ${appConfig.adminAuthToken}`)
+            }
 
             this.#io.of('/admin').use((socket, next) => {
                 const authToken = socket.handshake.auth?.token;
@@ -52,8 +54,23 @@ export default class GameServer {
             });
         }
 
-        setInterval(() => { this.serverTick() }, 60 * 1000);
-        setInterval(() => { this.hourly() }, 60 * 60 * 1000);
+        setInterval(() => { this.serverTick() }, 60 * 1000).unref();
+        setInterval(() => { this.hourly() }, 60 * 60 * 1000).unref();
+    }
+
+    getSocketHandler(socket, type) {
+        var handler = undefined;
+        if (type == 'client') {
+            handler = new ClientSocketHandler(this, socket, this.appConfig);
+        } else if (type == 'admin') {
+            handler = new AdminSocketHandler(this, socket, this.appConfig);
+        }
+
+        if (handler != undefined) {
+            this.#sockets[socket.id] = { handler: handler, type: type };
+        }
+
+        return handler;
     }
 
     serverTick() {
@@ -61,7 +78,9 @@ export default class GameServer {
     }
 
     hourly() {
-        console.log(`Hourly Cleanup: ${JSON.stringify(this.cleanup())}`);
+        if (!this.appConfig.silent) {
+            console.log(`Hourly Cleanup: ${JSON.stringify(this.cleanup())}`);
+        }
     }
 
     #prepareNewGame(gameid) {
@@ -167,7 +186,7 @@ export default class GameServer {
     }
 
     savedGameExists(gameID) {
-        if (gameID == null || gameID == undefined) { return false; }
+        if (gameID == null || gameID == undefined || this.appConfig.saveLocation == undefined) { return false; }
 
         if (fs.existsSync(this.appConfig.saveLocation)) {
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
@@ -179,7 +198,7 @@ export default class GameServer {
     }
 
     removeSaveGame(gameID) {
-        if (gameID == null || gameID == undefined) { return false; }
+        if (gameID == null || gameID == undefined || this.appConfig.saveLocation == undefined) { return false; }
 
         if (fs.existsSync(this.appConfig.saveLocation)) {
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
@@ -191,7 +210,7 @@ export default class GameServer {
     }
 
     saveGame(gameID) {
-        if (gameID == null || gameID == undefined) { return false; }
+        if (gameID == null || gameID == undefined || this.appConfig.saveLocation == undefined) { return false; }
 
         if (this.#games[gameID]) {
             var events = this.#games[gameID].game.collectEvents();
@@ -207,7 +226,7 @@ export default class GameServer {
     }
 
     loadGame(gameID) {
-        if (gameID == null || gameID == undefined) { return false; }
+        if (gameID == null || gameID == undefined || this.appConfig.saveLocation == undefined) { return false; }
 
         if (fs.existsSync(this.appConfig.saveLocation)) {
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
@@ -216,7 +235,9 @@ export default class GameServer {
                 try {
                     var events = JSON.parse(fs.readFileSync(gameFile));
                 } catch (e) {
-                    console.log(`There was an error parsing game json for ${gameID}: `, e);
+                    if (!this.appConfig.silent) {
+                        console.log(`There was an error parsing game json for ${gameID}: `, e);
+                    }
                     return false;
                 }
 
@@ -237,7 +258,9 @@ export default class GameServer {
                             return true;
                         }
                     } catch (e) {
-                        console.log(`There was an error loading game json for ${gameID}: `, e);
+                        if (!this.appConfig.silent) {
+                            console.log(`There was an error loading game json for ${gameID}: `, e);
+                        }
                         return false;
                     }
                 }
@@ -274,6 +297,8 @@ export default class GameServer {
     }
 
     getSavedGames() {
+        if (this.appConfig.saveLocation == undefined) { return []; }
+
         const files = {};
         if (fs.existsSync(this.appConfig.saveLocation)) {
             for (const file of fs.readdirSync(this.appConfig.saveLocation)) {
@@ -354,7 +379,9 @@ export default class GameServer {
 
     run() {
         this.#server.listen(this.appConfig.listenPort, () => {
-            console.log(`Server is listening on :${this.appConfig.listenPort}`);
+            if (!this.appConfig.silent) {
+                console.log(`Server is listening on :${this.appConfig.listenPort}`);
+            }
         });
     }
 }

@@ -94,5 +94,4 @@ Feature: Can a player claim Foreign Aid correctly?
     When Alice challenges the Counter
     Then Bob reveals DUKE
     Then Alice reveals Assassin
-    Then debug GameEvents
     Then Bob is the current player

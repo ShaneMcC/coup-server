@@ -13,7 +13,9 @@ export default class ClientSocketHandler {
         this.#server = server;
         this.#socket = socket;
 
-        console.log(`New client: ${socket.id}`);
+        if (!this.#server.appConfig.silent) {
+            console.log(`New client: ${socket.id}`);
+        }
         this.#socket.emit('clientConnected', { socketID: this.#socket.id, 'type': 'client', 'serverVersion': this.#server.appConfig.buildConfig.gitVersion });
         this.#socket.emit('gameCreationEnabled', { value: this.#server.appConfig.publicGames });
 
@@ -150,7 +152,9 @@ export default class ClientSocketHandler {
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
                 } catch (e) {
                     this.#socket.emit('actionError', { error: e.message });
-                    console.log('Action Error: ', [gameid, this.#myGames[gameid].playerID, action, target], e);
+                    if (!this.#server.appConfig.silent) {
+                        console.log('Action Error: ', [gameid, this.#myGames[gameid].playerID, action, target], e);
+                    }
                 }
             }
         });
@@ -184,7 +188,9 @@ export default class ClientSocketHandler {
             }
 
             this.#server.removeSocket(this.#socket.id);
-            console.log(`Client removed: ${this.#socket.id}`);
+            if (!this.#server.appConfig.silent) {
+                console.log(`Client removed: ${this.#socket.id}`);
+            }
         });
     }
 

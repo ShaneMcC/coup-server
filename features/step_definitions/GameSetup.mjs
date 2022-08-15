@@ -1,17 +1,80 @@
-import { Given, When, Then } from '@cucumber/cucumber'
+import { Given, When, Then, Before, After } from '@cucumber/cucumber'
 import { strict as assert } from 'assert'
-import Game from '../../src/Game/Game.js';
+import EventEmitter from 'events';
+import GameServer from '../../src/Server/GameServer.js';
+import CollectableEventBus from '../../src/Game/CollectableEventBus.js';
+
+class TestableGameServer extends GameServer {
+    constructor() {
+        const $appConfig = {
+            listenPort: 0,
+            adminAuthToken: 'TestAuthToken',
+            publicGames: true,
+            debugGames: false,
+            persistGames: false,
+            testGames: false,
+            saveLocation: undefined,
+            buildConfig: { gitVersion: "Unknown" },
+            silent: true,
+        }
+        
+        super($appConfig);
+    }
+    serverTick() { /* Do Nothing */ }
+    hourly() { /* Do Nothing */ }
+    run() { /* Do Nothing */ }
+}
+
+class FakeSocket {
+    id = undefined;
+
+    serverEmitter = new EventEmitter();
+    clientEmitter = new CollectableEventBus();
+
+    constructor(id) {
+        this.id = id;
+    }
+
+    emit(event, ...args) {
+        this.clientEmitter.emit(event, ...args);
+    }
+
+    on(event, handler) {
+        this.serverEmitter.on(event, handler);
+    }
+
+    clientEmit(event, ...args) {
+        this.serverEmitter.emit(event, ...args);
+    }
+
+    clientOn(event, handler) {
+        this.clientEmitter.on(event, handler);
+    }
+}
+
+Before(function () {
+    this.gameServer = new TestableGameServer();
+});
+
+After(function () {
+    delete this.gameServer;
+});
 
 Given(/the following players are in a (game|lobby):/, function (gameType, dataTable) {
-    this.game = new Game();
-    this.game.createGame();
+    this.game = this.gameServer.createGame();
+    this.clients = {};
 
     for (var player of dataTable.hashes()) {
         if (player.name == undefined) { throw new Error('Players must have a name'); }
 
         // We're haxing the IDs to be the player name here because it makes things easier...
-        // Otherwise we would use
+        // Otherwise we would use game.addPlayer();
         this.game.emit('addPlayer', { 'id': player.name, 'name': player.name });
+
+        // Also acquire a client socket for this client in case we want to inspect it.
+        this.clients[player.name] = { socket: new FakeSocket(player.name), handler: undefined, setupEvents: [] };
+        this.clients[player.name].handler = this.gameServer.getSocketHandler(this.clients[player.name].socket, 'client');
+        this.clients[player.name].socket.clientEmit('rejoinGame', this.game.gameID(), player.name);
 
         if (gameType == 'game') {
             // Ready up the player so that we can start the game.
@@ -63,7 +126,14 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
         this.game.emit('beginPlayerTurn', {'player': Object.keys(this.game.players())[0] });
 
         // Clear the events so that we only collect events from our test.
+        this.setupEvents = this.game.collectEvents();
         this.game.clearEvents();
+
+        // Clear the client events for the same reason.
+        for (const client of Object.values(this.clients)) {
+            client.setupEvents = client.socket.clientEmitter.collect();
+            client.socket.clientEmitter.clear();
+        }
     }
 });
 
@@ -90,10 +160,7 @@ Then('{word} is the current player', function (player) {
     assert(this.game.currentPlayerID() == player);
 });
 
-Then(/the (GameEvents) (do not contain|contain) the following:/, function (eventsType, matchType, dataTable) {
-    var events;
-    if (eventsType == 'GameEvents') { events = this.game.collectEvents(); }
-
+function handleEventsCheck(events, dataTable, checkContains) {
     // This is horrible.
     for (var wantedEvent of dataTable.hashes()) {
         var foundEvent = false;
@@ -113,12 +180,46 @@ Then(/the (GameEvents) (do not contain|contain) the following:/, function (event
             }
         }
 
-        assert(foundEvent === (matchType == 'contain'));
+        assert(foundEvent === checkContains);
     }
+}
+
+Then(/the GameEvents (do not contain|contain) the following:/, function (matchType, dataTable) {
+    handleEventsCheck(this.game.collectEvents(), dataTable, (matchType == 'contain'));
 });
 
-Then(/debug (GameEvents)/, function (debugType) {
-    if (debugType == 'GameEvents') {
-        console.dir(this.game.collectEvents(), { depth: null });
-    }
+Then(/the GameSetupEvents (do not contain|contain) the following:/, function (matchType, dataTable) {
+    handleEventsCheck(this.setupEvents, dataTable, (matchType == 'contain'));
+});
+
+Then(/the ClientEvents for {word} (do not contain|contain) the following:/, function (player, matchType, dataTable) {
+    handleEventsCheck(this.clients[player]?.socket.clientEmitter.collect(), dataTable, (matchType == 'contain'));
+});
+
+Then(/the ClientSetupEvents for {word} (do not contain|contain) the following:/, function (player, matchType, dataTable) {
+    handleEventsCheck(this.clients[player]?.setupEvents, dataTable, (matchType == 'contain'));
+});
+
+Then('debug GameEvents', function () {
+    console.dir(this.game.collectEvents(), { depth: null });
+});
+
+Then('debug GameSetupEvents', function (player) {
+    console.dir(this.setupEvents, { depth: null });
+});
+
+Then('debug ClientEvents for {word}', function (player) {
+    console.dir(this.clients[player]?.socket.clientEmitter.collect(), { depth: null });
+});
+
+Then('debug ClientSetupEvents for {word}', function (player) {
+    console.dir(this.clients[player]?.setupEvents, { depth: null });
+});
+
+When('GameEvents are reset', function (player) {
+    this.game.clearEvents();
+});
+
+When('ClientEvents for {word} are reset', function (player) {
+    this.clients[player]?.socket.clientEmitter.clear();
 });
