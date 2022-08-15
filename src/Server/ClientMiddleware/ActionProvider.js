@@ -135,7 +135,7 @@ export default class ActionProvider extends ClientMiddleware {
                 if (thisGame.GameActions[event.action]?.counterActions && (thisGame.GameActions[event.action].anyoneCanCounter || event.target == this.#myPlayerMask)) {
                     for (const ca of thisGame.GameActions[event.action].counterActions) {
                         displayActions[ca] = {
-                            name: thisGame.GameCounterActions[ca].name + (this.validAction(thisGame.GameCounterActions[ca].validCards, thisGamePlayers[this.#playerID].influence) ? '' : ' (Bluff)'),
+                            name: thisGame.GameCounterActions[ca].name + (this.validAction(thisGame.GameCounterActions[ca].validCards, thisGamePlayers[this.#playerID]?.influence) ? '' : ' (Bluff)'),
                             target: ca,
                             action: 'COUNTER',
                             validCards: thisGame.GameCounterActions[ca].validCards,
