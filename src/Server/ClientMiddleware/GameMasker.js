@@ -143,7 +143,7 @@ export default class GameMasker extends ClientMiddleware {
             
             // And the deck.
             this.#socketHandler.emitEvent('handleGameEvent', {
-                '__type': 'setDeck',
+                '__type': 'showDeck',
                 'game': event.game,
                 'date': event.date,
                 'deck': this.#gameDeck,
