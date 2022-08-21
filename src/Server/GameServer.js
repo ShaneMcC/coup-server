@@ -132,6 +132,17 @@ export default class GameServer {
 
             testGame.doPlayerAction(players[0], 'STARTGAME');
 
+            // Specifically start with the first player not random.
+            testGame.listen((event) => {
+                switch (event.__type) {
+                    case 'startingPlayerSelected':
+                        if (event.player != Object.keys(this.game.players())[0]) {
+                            this.game.emit(event.__type, { 'player': Object.keys(this.game.players())[0] });
+                        }
+                        break;
+                }
+            });
+
             return testGame;
         } catch (e) {
             this.removeGame(gameID);
