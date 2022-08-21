@@ -17,7 +17,7 @@ class TestableGameServer extends GameServer {
             buildConfig: { gitVersion: "Unknown" },
             silent: true,
         }
-        
+
         super($appConfig);
     }
     serverTick() { /* Do Nothing */ }
@@ -82,6 +82,17 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
         }
     };
 
+    // Ensure the starting player is always our first player
+    this.game.listen((event) => {
+        switch (event.__type) {
+            case 'startingPlayerSelected':
+                if (event.player != Object.keys(this.game.players())[0]) {
+                    this.game.emit(event.__type, { 'player': Object.keys(this.game.players())[0] });
+                }
+                break;
+        }
+    });
+
     if (gameType == 'game') {
         // Assume game has started.
         this.game.doPlayerAction(dataTable.hashes()[0].name, 'STARTGAME');
@@ -121,9 +132,6 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
                 this.game.emit('playerGainedCoins', { 'player': player.name, 'coins': player.coins });
             }
         }
-
-        // Specifically start with the first player not random.
-        this.game.emit('beginPlayerTurn', {'player': Object.keys(this.game.players())[0] });
 
         // Clear the events so that we only collect events from our test.
         this.setupEvents = this.game.collectEvents();

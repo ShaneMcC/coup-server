@@ -2,9 +2,12 @@ import GameState from '../GameState.js';
 
 export default class StandardGameSetup extends GameState {
 
+    #startingPlayer = '';
+
     constructor(game) {
         super(game);
         game.log('STATE: Setup Standard Game.');
+        this.#setupEventHandlers();
     }
 
     toString() {
@@ -13,7 +16,6 @@ export default class StandardGameSetup extends GameState {
 
     processAction() {
         // Get a deck of cards.
-        this.game.emit('prepareDeck');
         var deck = [];
         for (const [card, _] of Object.entries(this.game.GameCards)) {
             deck.push(card);
@@ -37,11 +39,19 @@ export default class StandardGameSetup extends GameState {
             this.game.emit('playerGainedCoins', { 'player': playerID, 'coins': 2 });
         };
         this.game.emit('playerInfluenceAllocated');
-        this.game.emit('gameReady');
 
         // Pick a random starting player.
         var allPlayerIDs = Object.keys(this.game.players());
         this.game.emit('startingPlayerSelected', {'player': allPlayerIDs[Math.floor(Math.random() * allPlayerIDs.length)]});
-        this.game.emit('beginPlayerTurn', {'player': allPlayerIDs[Math.floor(Math.random() * allPlayerIDs.length)]});
+
+        this.game.emit('gameReady');
+
+        this.game.emit('beginPlayerTurn', {'player': this.#startingPlayer});
+    }
+
+    #setupEventHandlers() {
+        this.gameEvents.on('startingPlayerSelected', (event) => {
+            this.#startingPlayer = event.player;
+        });
     }
 }
