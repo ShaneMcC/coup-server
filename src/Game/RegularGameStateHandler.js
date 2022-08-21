@@ -8,6 +8,8 @@ import GameOverState from './GameStates/GameOverState.js';
 import StandardGameSetup from './GameStates/GameSetup/StandardGameSetup.js';
 import StandardTwoPlayerGameSetup from './GameStates/GameSetup/StandardTwoPlayerGameSetup.js';
 import EventEmitter from 'events';
+import CalledCoupAction from './Actions/CalledCoup.js';
+import PlayerCallingCoupTurnState from './GameStates/PlayerCallingCoup.js';
 
 export default class RegularGameStateHandler {
     #gameEvents = new EventEmitter();
@@ -44,6 +46,13 @@ export default class RegularGameStateHandler {
             this.game.state = this.#gameSetupState;
         });
 
+        // TODO: This should be better maybe.
+        this.#gameEvents.on('enableVariant', event => {
+            if (event.variant == 'CallTheCoup') {
+                this.game.GameActions['COUP'] = CalledCoupAction;
+            }
+        });
+
         this.#gameEvents.on('gameReady', event => {
             this.#gameSetupState = undefined;
             this.game.state = new GameState(this.game);
@@ -51,6 +60,10 @@ export default class RegularGameStateHandler {
 
         this.#gameEvents.on('beginPlayerTurn', event => {
             this.game.state = new PlayerTurnState(this.game, event.player);
+        });
+
+        this.#gameEvents.on('playerCallingCoup', event => {
+            this.game.state = new PlayerCallingCoupTurnState(this.game, event.player, event.target);
         });
 
         this.#gameEvents.on('challengeablePlayerAction', event => {

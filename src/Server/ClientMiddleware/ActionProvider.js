@@ -151,6 +151,15 @@ export default class ActionProvider extends ClientMiddleware {
             }
         }
 
+
+        if (event.__type == 'playerCallingCoup') {
+            if (event.player == this.#myPlayerMask) {
+                this.showActions({ 'COUP': { name: 'Coup Influence', oneTime: true, options: Object.keys(thisGame.GameCards) } });
+            } else {
+                this.showActions({});
+            }
+        }
+
         if (event.__type == 'playerPassed' && event.player == this.#myPlayerMask) {
             this.showActions({});
         }

@@ -4,6 +4,7 @@ export default {
     'requiredCoins': 7,
 
     process(game, playerid, targetid) {
+        game.emit('coupSuccess', {player: playerid, target: targetid});
         game.emit('playerMustDiscardInfluence', {player: targetid, reason: 'Coup'});
     },
 }
