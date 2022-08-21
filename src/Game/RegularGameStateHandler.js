@@ -45,7 +45,7 @@ export default class RegularGameStateHandler {
         });
 
         this.#gameEvents.on('gameReady', event => {
-            delete this.#gameSetupState;
+            this.#gameSetupState = undefined;
             this.game.state = new GameState(this.game);
         });
 
