@@ -89,7 +89,7 @@ export default class ActionProvider extends ClientMiddleware {
 
                 const playerValues = Object.values(thisGamePlayers);
                 if (playerValues.filter(p => !p.ready).length == 0) {
-                    pregameActions['STARTGAME'] = { name: "Start Game", disabled: (playerValues.length < 3 || playerValues.length > 10)};
+                    pregameActions['STARTGAME'] = { name: "Start Game", disabled: (playerValues.length < 2 || playerValues.length > 10)};
                 }
             }
 

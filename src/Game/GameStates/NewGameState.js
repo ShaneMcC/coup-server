@@ -45,13 +45,9 @@ export default class NewGameState extends GameState {
         }
 
         // Check for correct number of players.
-        // 3-10 players.
-        //
-        // Official 2-player doesn't work well, and I haven't implemented alternative rules yet.
-        //
-        // Consider: https://whatnerd.com/coup-2-players-ultimate-variant/
-        if (Object.keys(this.game.players()).length < 3) {
-            return [false, `You need at least 3 players to play.`];
+        // 2-10 players.
+        if (Object.keys(this.game.players()).length < 2) {
+            return [false, `You need at least 2 players to play.`];
         } else if (Object.keys(this.game.players()).length > 10) {
             return [false, `You can not play with more than 10 players.`];
         }
@@ -63,37 +59,14 @@ export default class NewGameState extends GameState {
             }
         }
 
-        this.game.emit('startGame');
+        if (Object.keys(this.game.players()).length == 2) {
+            this.game.emit('startGame', {'mode': 'StandardTwoPlayerGame'});
+        } else {
+            this.game.emit('startGame', {'mode': 'StandardGame'});
+        }
 
-        // Get a deck of cards.
-        var deck = [];
-        for (const [card, _] of Object.entries(this.game.GameCards)) {
-            deck.push(card);
-            deck.push(card);
-            deck.push(card);
-            if (Object.keys(this.game.players()).length >= 7) {
-                deck.push(card);
-            }
-            if (Object.keys(this.game.players()).length >= 9) {
-                deck.push(card);
-            }
-        };
-
-        this.game.emit('setDeck', { 'deck':  this.game.getShuffledDeck(deck)});
-
-        // Allocate cards and coins to players.
-        this.game.emit('allocatingPlayerInfluence');
-        for (const [playerID, _] of Object.entries(this.game.players())) {
-            this.game.emit('allocateNextInfluence', { 'player': playerID });
-            this.game.emit('allocateNextInfluence', { 'player': playerID });
-            this.game.emit('playerGainedCoins', { 'player': playerID, 'coins': 2 });
-        };
-        this.game.emit('playerInfluenceAllocated');
-        this.game.emit('gameReady');
-
-        // Pick a random starting player.
-        var allPlayerIDs = Object.keys(this.game.players());
-        this.game.emit('beginPlayerTurn', {'player': allPlayerIDs[Math.floor(Math.random() * allPlayerIDs.length)]});
+        // Let the game setup handler set up the game.
+        this.game.state.processAction();
 
         return [true, ''];
     }

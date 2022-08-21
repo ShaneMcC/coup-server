@@ -5,11 +5,14 @@ import PlayerChallengedTurnState from './GameStates/PlayerChallengedTurnState.js
 import PlayerMustDiscardTurnState from './GameStates/PlayerMustDiscardTurnState.js';
 import PlayerExchangingCardsTurnState from './GameStates/PlayerExchangingCardsTurnState.js';
 import GameOverState from './GameStates/GameOverState.js';
+import StandardGameSetup from './GameStates/GameSetup/StandardGameSetup.js';
+import StandardTwoPlayerGameSetup from './GameStates/GameSetup/StandardTwoPlayerGameSetup.js';
 import EventEmitter from 'events';
 
 export default class RegularGameStateHandler {
     #gameEvents = new EventEmitter();
     game;
+    #gameSetupState = undefined;
 
     constructor(game) {
         this.game = game;
@@ -21,6 +24,26 @@ export default class RegularGameStateHandler {
     }
 
     addHandlers() {
+        this.#gameEvents.on('startGame', event => {
+            const gameMode = event.mode ? event.mode : 'StandardGame' ;
+
+            switch (gameMode) {
+                case 'StandardTwoPlayerGame':
+                    this.#gameSetupState = new StandardTwoPlayerGameSetup(this.game);
+                    break;
+                case 'StandardGame':
+                default:
+                    this.#gameSetupState = new StandardGameSetup(this.game);
+                    break;
+            }
+
+            this.game.state = this.#gameSetupState;
+        });
+
+        this.#gameEvents.on('continueGameSetup', event => {
+            this.game.state = this.#gameSetupState;
+        });
+
         this.#gameEvents.on('gameReady', event => {
             this.game.state = new GameState(this.game);
         });
@@ -50,7 +73,7 @@ export default class RegularGameStateHandler {
         });
 
         this.#gameEvents.on('playerExchangingCards', event => {
-            this.game.state = new PlayerExchangingCardsTurnState(this.game, event.player, event.count ? event.count : 2);
+            this.game.state = new PlayerExchangingCardsTurnState(this.game, event.player, event.count ? event.count : 2, this.game.state);
         });
 
         this.#gameEvents.on('gameOver', event => {

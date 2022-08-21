@@ -90,18 +90,17 @@ export default class GameMasker extends ClientMiddleware {
             event.deck = Array(event.deck.length).fill("UNKNOWN");
         }
 
-        // Modify allocateNextInfluence to actually be useful for the client if it is us
-        // or hide it otherwise.
+        // Modify allocateNextInfluence to actually be useful for the client
         if (event.__type == 'allocateNextInfluence') {
             var influence = this.#gameDeck.shift();
 
             event.__type = 'allocateInfluence';
+            event.influence = influence;
+        }
 
-            if (event.player == myPlayerMask) {
-                event.influence = influence;
-            } else {
-                event.influence = 'UNKNOWN';
-            }
+        // Hide other-player allocated influence.
+        if (event.__type == 'allocateInfluence' && event.player != myPlayerMask) {
+            event.influence = 'UNKNOWN';
         }
 
         // Hide re-decked influences.

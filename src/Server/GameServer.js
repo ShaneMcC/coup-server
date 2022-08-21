@@ -132,13 +132,6 @@ export default class GameServer {
 
             testGame.doPlayerAction(players[0], 'STARTGAME');
 
-            // Specifically start with the first player not random.
-            testGame.emit('beginPlayerTurn', { 'player': Object.keys(testGame.players())[0] });
-
-            for (const player of players) {
-                testGame.doPlayerAction(player, 'INCOME');
-            }
-
             return testGame;
         } catch (e) {
             this.removeGame(gameID);

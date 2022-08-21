@@ -9,6 +9,6 @@ export default {
         game.emit('allocateNextInfluence', { 'player': playerid });
 
         // They need to silently discard 2 of them
-        game.emit('playerExchangingCards', {player: playerid, count: 2});
+        game.emit('playerExchangingCards', {player: playerid, count: 2, reason: 'Player used Exchange action'});
     },
 }
