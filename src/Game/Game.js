@@ -32,7 +32,16 @@ export default class Game {
     GameCounterActions = clone(DefaultCounterActions);
     GameCards = clone(DefaultCards);
     ValidGameOptions = {
-        'CallTheCoup': {name: 'Enable Variant: Call the Coup', type: 'boolean', value: false},
+        'CallTheCoup': {
+            name: 'Enable Variant: Call the Coup',
+            type: 'boolean',
+            value: false,
+        },
+        'TwoPlayerExtraLives': {
+            name: 'Enable Variant: Enable extra lives (Two Player mode only)',
+            type: 'boolean',
+            value: false,
+        },
     }
 
     constructor() {
@@ -169,6 +178,19 @@ export default class Game {
 
     players() {
         return JSON.parse(JSON.stringify(this.#players));
+    }
+
+    discardPlayerInfluence(playerid, influence) {
+        this.emit('discardInfluence', { 'player': playerid, 'influence': influence });
+
+        if ('lives' in this.#players[playerid] && this.#players[playerid].lives > 0) {
+            this.emit('playerLostLife', { 'player': playerid });
+            this.emit('allocateNextInfluence', { 'player': playerid });
+        }
+
+        if (this.#players[playerid].influence.length == 0) {
+            this.emit('playerOutOfInfluence', { 'player': playerid });
+        }
     }
 
     #advancePlayer() {
@@ -315,6 +337,14 @@ export default class Game {
 
         this.#gameEvents.on('playerSpentCoins', event => {
             this.#players[event.player].coins -= parseInt(event.coins);
+        });
+
+        this.#gameEvents.on('playerAllocatedExtraLives', event => {
+            this.#players[event.player].lives = parseInt(event.lives);
+        });
+
+        this.#gameEvents.on('playerLostLife', event => {
+            this.#players[event.player].lives -= 1;
         });
 
         this.#gameEvents.on('nextGameAvailable', event => {

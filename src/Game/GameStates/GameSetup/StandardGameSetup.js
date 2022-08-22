@@ -14,14 +14,10 @@ export default class StandardGameSetup extends GameState {
     }
 
     toString() {
-        return `StandardGameSetup`
+        return `StandardGameSetup with {${JSON.stringify(this.gameOptions)}}`
     }
 
-    processAction() {
-        if (this.gameOptions['CallTheCoup']) {
-            this.game.emit('enableVariant', {variant: 'CallTheCoup'});
-        }
-
+    shuffleAndDealDeck() {
         // Get a deck of cards.
         var deck = [];
         for (const [card, _] of Object.entries(this.game.GameCards)) {
@@ -46,6 +42,14 @@ export default class StandardGameSetup extends GameState {
             this.game.emit('playerGainedCoins', { 'player': playerID, 'coins': 2 });
         };
         this.game.emit('playerInfluenceAllocated');
+    }
+
+    processAction() {
+        if (this.gameOptions['CallTheCoup']) {
+            this.game.emit('enableVariant', {variant: 'CallTheCoup'});
+        }
+
+        this.shuffleAndDealDeck();
 
         // Pick a random starting player.
         var allPlayerIDs = Object.keys(this.game.players());

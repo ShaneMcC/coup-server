@@ -1,11 +1,13 @@
 import GameState from '../GameState.js';
+import StandardGameSetup from './StandardGameSetup.js';
 
 export default class StandardTwoPlayerGameSetup extends GameState {
 
     #setupStages = {
         INITIAL: 'Initial',
         PLAYER1: 'Player1',
-        PLAYER2: 'Player2'
+        PLAYER2: 'Player2',
+        FINAL: 'Final',
     };
     #setupStage = this.#setupStages.INITIAL;
 
@@ -15,14 +17,14 @@ export default class StandardTwoPlayerGameSetup extends GameState {
     gameOptions = {};
 
     constructor(game, gameOptions) {
-        super(game);
+        super(game, gameOptions);
         this.gameOptions = gameOptions;
         game.log('STATE: Setup Two Player Game.');
         this.#setupEventHandlers();
     }
 
     toString() {
-        return `StandardTwoPlayerGameSetup[${this.#setupStage}]`
+        return `StandardTwoPlayerGameSetup[${this.#setupStage}] with {${JSON.stringify(this.gameOptions)}}`
     }
 
     processAction() {
@@ -47,11 +49,7 @@ export default class StandardTwoPlayerGameSetup extends GameState {
         }
     }
 
-    processAction_initial() {
-        if (this.gameOptions['CallTheCoup']) {
-            this.game.emit('enableVariant', {variant: 'CallTheCoup'});
-        }
-
+    shuffleAndDealDeck() {
         // Put 2 of each card in the deck.
         var deck = [];
         for (const [card, _] of Object.entries(this.game.GameCards)) {
@@ -69,13 +67,44 @@ export default class StandardTwoPlayerGameSetup extends GameState {
                 this.game.emit('allocateInfluence', { 'player': playerID, 'influence': card });
             }
         }
+    }
+
+    processAction_initial() {
+        if (this.gameOptions['CallTheCoup']) {
+            this.game.emit('enableVariant', { variant: 'CallTheCoup' });
+        }
+
+        if (this.gameOptions['TwoPlayerExtraLives']) {
+            this.game.emit('enableVariant', { variant: 'ExtraLives' });
+
+            // Do standard game setup.
+            (new StandardGameSetup(this.game, this.gameOptions)).shuffleAndDealDeck();
+        } else {
+            this.shuffleAndDealDeck();
+        }
 
         // Pick a random starting player.
         var allPlayerIDs = Object.keys(this.game.players());
         this.game.emit('startingPlayerSelected', { 'player': allPlayerIDs[Math.floor(Math.random() * allPlayerIDs.length)] });
 
-        // Player 1 Discard.
-        this.game.emit('playerExchangingCards', { player: this.#player1, count: 4, reason: 'Pick starting influence' });
+
+        if (this.gameOptions['TwoPlayerExtraLives']) {
+            // Allocate lives to players
+            this.game.emit('playerAllocatedExtraLives', { 'player': this.#player1, 'lives': 3 });
+            this.game.emit('playerAllocatedExtraLives', { 'player': this.#player2, 'lives': 3 });
+        }
+
+        switch (this.#setupStage) {
+            case this.#setupStages.INITIAL:
+                // Player 1 Discard.
+                this.game.emit('playerExchangingCards', { player: this.#player1, count: 4, reason: 'Pick starting influence' });
+                break;
+
+            case this.#setupStages.FINAL:
+                // Start the game.
+                this.gameReady();
+                break;
+        }
     }
 
     processAction_final() {
@@ -98,9 +127,13 @@ export default class StandardTwoPlayerGameSetup extends GameState {
 
         // Game is ready
         this.game.emit('playerInfluenceAllocated');
-        this.game.emit('gameReady');
+        
+        this.gameReady();
+    }
 
-        this.game.emit('beginPlayerTurn', {'player': this.#player1});
+    gameReady() {
+        this.game.emit('gameReady');
+        this.game.emit('beginPlayerTurn', { 'player': this.#player1 });
     }
 
     #setupEventHandlers() {
@@ -117,6 +150,10 @@ export default class StandardTwoPlayerGameSetup extends GameState {
             } else if (event.player == this.#player2) {
                 this.#setupStage = this.#setupStages.PLAYER2;
             }
+        });
+
+        this.gameEvents.on('playerInfluenceAllocated', () => {
+            this.#setupStage = this.#setupStages.FINAL;
         });
     }
 }

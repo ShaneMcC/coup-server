@@ -42,13 +42,8 @@ export default class PlayerCallingCoupTurnState extends GameState {
                 this.game.emit('coupFailed', {player: this.player.id, target: this.target.id, reason: `Target player does not have ${target}.`});
             } else {
                 this.game.emit('coupSuccess', {player: this.player.id, target: this.target.id});
-                this.game.emit('discardInfluence', { 'player': this.target.id, 'influence': target });
+                this.game.discardPlayerInfluence(this.target.id, target);
                 this.game.emit('playerFinishedDiscardingInfluence', { 'player': this.target.id });
-            }
-
-            this.#updatePlayerArrays();
-            if (this.target.influence.length == 0) {
-                this.game.emit('playerOutOfInfluence', { 'player': this.target.id });
             }
 
             this.game.startNextTurn();

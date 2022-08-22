@@ -93,4 +93,3 @@ Feature: Can a player coup another player
     And Charlie has 0 influence remaining
     And Bob has 2 influence remaining
     Then Alice is the current player
-
