@@ -192,6 +192,10 @@ function handleEventsCheck(events, dataTable, checkContains) {
     }
 }
 
+Given('The variant {word} is enabled', function (variant) {
+    this.game.emit('enableVariant', { 'variant': variant });
+});
+
 Then(/the GameEvents (do not contain|contain) the following:/, function (matchType, dataTable) {
     handleEventsCheck(this.game.collectEvents(), dataTable, (matchType == 'contain'));
 });
