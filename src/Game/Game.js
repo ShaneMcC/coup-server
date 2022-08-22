@@ -31,6 +31,9 @@ export default class Game {
     GameActions = clone(DefaultActions);
     GameCounterActions = clone(DefaultCounterActions);
     GameCards = clone(DefaultCards);
+    ValidGameOptions = {
+        'CallTheCoup': {name: 'Enable Variant: Call the Coup', type: 'boolean', value: false},
+    }
 
     constructor() {
         this.addHandlers();

@@ -47,7 +47,7 @@ export default class ActionProvider extends ClientMiddleware {
     validAction(validCards, playerInfluence) {
         // If validcards is undefined, then anyone can do the action
         if (validCards == undefined) { return true; }
-        
+
         // If validCards is empty, no one can do the action.
         if (validCards.length == 0) { return false; }
 
@@ -89,11 +89,24 @@ export default class ActionProvider extends ClientMiddleware {
 
                 const playerValues = Object.values(thisGamePlayers);
                 if (playerValues.filter(p => !p.ready).length == 0) {
-                    pregameActions['STARTGAME'] = { name: "Start Game", disabled: (playerValues.length < 2 || playerValues.length > 10)};
+                    pregameActions['STARTGAME'] = {
+                        name: "Start Game",
+                        disabled: (playerValues.length < 2 || playerValues.length > 10)
+                    };
                 }
             }
 
             this.showActions(pregameActions);
+        }
+
+        if (event.__type == 'gameCreated') {
+            this.#socketHandler.emitEvent('handleGameEvent', {
+                '__type': 'gameSetupOptionsAvailable',
+                'game': this.#gameID,
+                'player': this.#myPlayerMask,
+                'date': event.date,
+                'options': thisGame.ValidGameOptions,
+            });
         }
 
         if (event.__type == 'startGame') {
@@ -107,7 +120,7 @@ export default class ActionProvider extends ClientMiddleware {
         if (event.__type == 'beginPlayerTurn') {
             if (event.player == this.#myPlayerMask) {
                 if (thisGamePlayers[this.#playerID].coins >= 10) {
-                    this.showActions({'COUP': thisGame.GameActions.COUP});
+                    this.showActions({ 'COUP': thisGame.GameActions.COUP });
                 } else {
                     const displayActions = JSON.parse(JSON.stringify(thisGame.GameActions));
                     for (const a in displayActions) {
@@ -124,7 +137,7 @@ export default class ActionProvider extends ClientMiddleware {
             if (event.player == this.#myPlayerMask || (thisGamePlayers[this.#playerID] && thisGamePlayers[this.#playerID].influence.length == 0)) {
                 this.showActions({});
             } else {
-                var displayActions = {'PASS': { name: 'Allow' }};
+                var displayActions = { 'PASS': { name: 'Allow' } };
 
                 if (event.__type == 'challengeablePlayerAction') {
                     displayActions['CHALLENGE'] = { name: 'Challenge' };
@@ -154,7 +167,7 @@ export default class ActionProvider extends ClientMiddleware {
 
         if (event.__type == 'playerCallingCoup') {
             if (event.player == this.#myPlayerMask) {
-                this.showActions({ 'COUP': { name: 'Coup Influence', oneTime: true, options: Object.keys(thisGame.GameCards) } });
+                this.showActions({ 'COUP': { name: 'Target Influence', oneTime: true, options: Object.keys(thisGame.GameCards) } });
             } else {
                 this.showActions({});
             }
@@ -176,7 +189,7 @@ export default class ActionProvider extends ClientMiddleware {
             if (event.challenger == this.#myPlayerMask || (thisGamePlayers[this.#playerID] && thisGamePlayers[this.#playerID].influence.length == 0)) {
                 this.showActions({});
             } else {
-                var displayActions = {'PASS': { name: 'Allow' }, 'CHALLENGE': { name: 'Challenge' }};
+                var displayActions = { 'PASS': { name: 'Allow' }, 'CHALLENGE': { name: 'Challenge' } };
                 this.showActions(displayActions);
             }
         }

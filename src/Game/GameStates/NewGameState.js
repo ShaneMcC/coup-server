@@ -59,10 +59,19 @@ export default class NewGameState extends GameState {
             }
         }
 
+        var gameOptions = {};
+        if (target?.options) {
+            for (const [id, data] of Object.entries(target.options)) {
+                if (this.game.ValidGameOptions[id] && 'value' in data) {
+                    gameOptions[id] = data.value;
+                }
+            }
+        }
+
         if (Object.keys(this.game.players()).length == 2) {
-            this.game.emit('startGame', {'mode': 'StandardTwoPlayerGame'});
+            this.game.emit('startGame', {'mode': 'StandardTwoPlayerGame', 'options': gameOptions});
         } else {
-            this.game.emit('startGame', {'mode': 'StandardGame'});
+            this.game.emit('startGame', {'mode': 'StandardGame', 'options': gameOptions});
         }
 
         // Let the game setup handler set up the game.

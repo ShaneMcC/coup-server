@@ -12,8 +12,11 @@ export default class StandardTwoPlayerGameSetup extends GameState {
     #player1 = '';
     #player2 = '';
 
-    constructor(game) {
+    gameOptions = {};
+
+    constructor(game, gameOptions) {
         super(game);
+        this.gameOptions = gameOptions;
         game.log('STATE: Setup Two Player Game.');
         this.#setupEventHandlers();
     }
@@ -45,6 +48,10 @@ export default class StandardTwoPlayerGameSetup extends GameState {
     }
 
     processAction_initial() {
+        if (this.gameOptions['CallTheCoup']) {
+            this.game.emit('enableVariant', {variant: 'CallTheCoup'});
+        }
+
         // Put 2 of each card in the deck.
         var deck = [];
         for (const [card, _] of Object.entries(this.game.GameCards)) {

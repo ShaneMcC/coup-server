@@ -4,8 +4,11 @@ export default class StandardGameSetup extends GameState {
 
     #startingPlayer = '';
 
-    constructor(game) {
+    gameOptions = {};
+
+    constructor(game, gameOptions) {
         super(game);
+        this.gameOptions = gameOptions;
         game.log('STATE: Setup Standard Game.');
         this.#setupEventHandlers();
     }
@@ -15,6 +18,10 @@ export default class StandardGameSetup extends GameState {
     }
 
     processAction() {
+        if (this.gameOptions['CallTheCoup']) {
+            this.game.emit('enableVariant', {variant: 'CallTheCoup'});
+        }
+
         // Get a deck of cards.
         var deck = [];
         for (const [card, _] of Object.entries(this.game.GameCards)) {

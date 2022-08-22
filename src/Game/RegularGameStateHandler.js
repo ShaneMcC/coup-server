@@ -27,15 +27,16 @@ export default class RegularGameStateHandler {
 
     addHandlers() {
         this.#gameEvents.on('startGame', event => {
-            const gameMode = event.mode ? event.mode : 'StandardGame' ;
+            const gameMode = event.mode ? event.mode : 'StandardGame';
+            const gameOptions = event.options ? event.options : {};
 
             switch (gameMode) {
                 case 'StandardTwoPlayerGame':
-                    this.#gameSetupState = new StandardTwoPlayerGameSetup(this.game);
+                    this.#gameSetupState = new StandardTwoPlayerGameSetup(this.game, gameOptions);
                     break;
                 case 'StandardGame':
                 default:
-                    this.#gameSetupState = new StandardGameSetup(this.game);
+                    this.#gameSetupState = new StandardGameSetup(this.game, gameOptions);
                     break;
             }
 
