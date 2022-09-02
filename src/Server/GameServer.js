@@ -335,7 +335,7 @@ export default class GameServer {
             if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
 
             if (gameMeta.game.state instanceof NewGameState) {
-                if (gameMeta.game.createdAt < new Date(Date.now() - (86400 * 1000))) {
+                if (gameMeta.game.createdAt < new Date(Date.now() - (1 * (86400 * 1000)))) {
                     // Cleanup Game
                     gameMeta.game.endGame(`Game timed out.`);
                     this.removeGame(gameID);
@@ -356,7 +356,7 @@ export default class GameServer {
             if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
 
             if (gameMeta.game.state instanceof GameOverState) {
-                if (gameMeta.game.createdAt < new Date(Date.now() - (7 * (86400 * 1000)))) {
+                if (gameMeta.game.createdAt < new Date(Date.now() - (1 * (86400 * 1000)))) {
                     this.saveGame(gameID);
                     this.removeGame(gameID);
                     games.push(gameID);
