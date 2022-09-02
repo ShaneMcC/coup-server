@@ -136,7 +136,7 @@ export default class ClientSocketHandler {
                 game.unlisten(this.#listener);
             } else {
                 this.#socket.emit('commandError', { error: 'Invalid game.' });
-                this.#socket.emit('extFailed', { gameID: id });
+                this.#socket.emit('exitFailed', { gameID: id });
             }
         });
 
