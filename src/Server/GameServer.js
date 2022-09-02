@@ -357,9 +357,10 @@ export default class GameServer {
 
             if (gameMeta.game.state instanceof GameOverState) {
                 if (gameMeta.game.createdAt < new Date(Date.now() - (1 * (86400 * 1000)))) {
-                    this.saveGame(gameID);
-                    this.removeGame(gameID);
-                    games.push(gameID);
+                    if (this.saveGame(gameID)) {
+                        this.removeGame(gameID);
+                        games.push(gameID);
+                    }
                 }
             }
         }
@@ -376,9 +377,10 @@ export default class GameServer {
             if (gameMeta.game.state instanceof GameOverState) { continue; }
 
             if (gameMeta.game.lastEventAt < new Date(Date.now() - (1 * (86400 * 1000)))) {
-                this.saveGame(gameID);
-                this.removeGame(gameID);
-                games.push(gameID);
+                if (this.saveGame(gameID)) {
+                    this.removeGame(gameID);
+                    games.push(gameID);
+                }
             }
         }
 
