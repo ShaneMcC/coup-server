@@ -372,6 +372,8 @@ export default class GameServer {
 
         for (const [gameID, gameMeta] of Object.entries(this.#games)) {
             if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
+            if (gameMeta.game.state instanceof NewGameState) { continue; }
+            if (gameMeta.game.state instanceof GameOverState) { continue; }
 
             if (gameMeta.game.lastEventAt < new Date(Date.now() - (1 * (86400 * 1000)))) {
                 this.saveGame(gameID);
