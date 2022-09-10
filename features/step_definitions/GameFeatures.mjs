@@ -2,27 +2,31 @@ import { When, Then } from '@cucumber/cucumber'
 import { strict as assert } from 'assert'
 import ChallengeTurnState from '../../src/Game/GameStates/ChallengeTurnState.js';
 
-When('{word} wants to claim {word}', function (player, action) {
-    this.clients[player].socket.clientEmit('action', this.game.gameID(), action);
+When('{word} wants to claim {word}', async function (player, action) {
+    await this.clients[player].socket.clientEmit('action', this.game.gameID(), action).catch(() => {});
 });
 
-When('{word} wants to claim {word} on {word}', function (player, action, target) {
-    this.clients[player].socket.clientEmit('action', this.game.gameID(), action, target);
+When('{word} wants to claim {word} on {word}', async function (player, action, target) {
+    await this.clients[player].socket.clientEmit('action', this.game.gameID(), action, target).catch(() => {});
 });
 
-Then('{word} wants to exchange card {int}', function (player, card) {
-    this.clients[player].socket.clientEmit('action', this.game.gameID(), 'EXCHANGE', this.game.players()[player].influence[card]);
+Then('{word} wants to exchange card {int}', async function (player, card) {
+    await this.clients[player].socket.clientEmit('action', this.game.gameID(), 'EXCHANGE', this.game.players()[player].influence[card]).catch(() => {});
 });
 
-When('{word} counters with {word}', function (player, action) {
-    this.clients[player].socket.clientEmit('action', this.game.gameID(), 'COUNTER', action);
+When('{word} counters with {word}', async function (player, action) {
+    await this.clients[player].socket.clientEmit('action', this.game.gameID(), 'COUNTER', action).catch(() => {});
 });
 
-When('{word} reveals {word}', function (player, influence) {
-    this.clients[player].socket.clientEmit('action', this.game.gameID(), 'REVEAL', influence.toUpperCase());
+When('{word} reveals {word}', async function (player, influence) {
+    await this.clients[player].socket.clientEmit('action', this.game.gameID(), 'REVEAL', influence.toUpperCase()).catch(() => {});
 });
 
-When(/([^\s]+) challenges the (Action|Counter)/, function (player, thing) {
+Then('{word} reveals card {int}', async function (player, card) {
+    await this.clients[player].socket.clientEmit('action', this.game.gameID(), 'REVEAL', this.game.players()[player].influence[card]).catch(() => {});
+});
+
+When(/([^\s]+) challenges the (Action|Counter)/, async function (player, thing) {
     if (!(this.game.state instanceof ChallengeTurnState)) {
         throw new Error('Game does not require any challenging.');
     }
@@ -33,10 +37,10 @@ When(/([^\s]+) challenges the (Action|Counter)/, function (player, thing) {
         throw new Error(`Player is not challenging a counter: ${this.game.state.toString()}`)
     }
     
-    this.clients[player].socket.clientEmit('action', this.game.gameID(), 'CHALLENGE');
+    await this.clients[player].socket.clientEmit('action', this.game.gameID(), 'CHALLENGE').catch(() => {});
 });
 
-When(/all players pass the (Action|Counter)/, function (thing) {
+When(/all players pass the (Action|Counter)/, async function (thing) {
     if (!(this.game.state instanceof ChallengeTurnState)) {
         throw new Error('Game does not require any passing.');
     }
@@ -54,11 +58,11 @@ When(/all players pass the (Action|Counter)/, function (thing) {
     }
 
     for (const [playerID, _] of Object.entries(playersToPass)) {
-        this.clients[playerID].socket.clientEmit('action', this.game.gameID(), 'PASS');
+        await this.clients[playerID].socket.clientEmit('action', this.game.gameID(), 'PASS').catch(() => {});
     }
 });
 
-When(/([^\s]+) passes the (Action|Counter)/, function (player, thing) {
+When(/([^\s]+) passes the (Action|Counter)/, async function (player, thing) {
     if (!(this.game.state instanceof ChallengeTurnState)) {
         throw new Error('Game does not require any passing.');
     }
@@ -69,7 +73,7 @@ When(/([^\s]+) passes the (Action|Counter)/, function (player, thing) {
         throw new Error(`Player is not passing a counter: ${this.game.state.toString()}`)
     }
 
-    this.clients[player].socket.clientEmit('action', this.game.gameID(), 'PASS');
+    await this.clients[player].socket.clientEmit('action', this.game.gameID(), 'PASS').catch(() => {});
 });
 
 Then('{word} has {int} coins remaining', function (player, coins) {

@@ -44,7 +44,22 @@ class FakeSocket {
     }
 
     clientEmit(event, ...args) {
-        this.serverEmitter.emit(event, ...args);
+        return new Promise((resolve, reject) => {
+
+            const onError = (e) => reject(e);
+            const onSuccess = () => resolve();
+
+            this.clientEmitter.once('actionError', (e) => {
+                onError(e);
+                this.clientEmitter.off('actionSuccess', onSuccess);
+            });
+            this.clientEmitter.once('actionSuccess', () => {
+                onSuccess();
+                this.clientEmitter.off('actionError', onError);
+            });
+
+            this.serverEmitter.emit(event, ...args);
+        });
     }
 
     clientOn(event, handler) {
@@ -60,6 +75,16 @@ After(function () {
     delete this.gameServer;
 });
 
+Given('The following game options:', function (dataTable) {
+    const options = {};
+    for (var opt of dataTable.hashes()) {
+        options[opt.option] = {'value': opt.value};
+    }
+
+    this.gameOptions = options;
+});
+
+
 Given(/the following players are in a (game|lobby):/, function (gameType, dataTable) {
     this.game = this.gameServer.createGame();
     this.clients = {};
@@ -74,7 +99,7 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
         // Also acquire a client socket for this client in case we want to inspect it.
         this.clients[player.name] = { socket: new FakeSocket(player.name), handler: undefined, setupEvents: [] };
         this.clients[player.name].handler = this.gameServer.getSocketHandler(this.clients[player.name].socket, 'client');
-        this.clients[player.name].socket.clientEmit('rejoinGame', this.game.gameID(), player.name);
+        this.clients[player.name].socket.clientEmit('rejoinGame', this.game.gameID(), player.name).catch(() => {});
 
         if (gameType == 'game') {
             // Ready up the player so that we can start the game.
@@ -95,7 +120,7 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
 
     if (gameType == 'game') {
         // Assume game has started.
-        this.game.doPlayerAction(dataTable.hashes()[0].name, 'STARTGAME');
+        this.game.doPlayerAction(dataTable.hashes()[0].name, 'STARTGAME', {options: this.gameOptions});
 
         // If we want to set influence, then do it.
         if (dataTable.hashes()[0].Influence1 != undefined || dataTable.hashes()[0].Influence2 != undefined) {
@@ -133,6 +158,13 @@ Given(/the following players are in a (game|lobby):/, function (gameType, dataTa
             }
         }
 
+        if (dataTable.hashes()[0].lives != undefined) {
+            // Upgrade people's lives to the right value.
+            for (var player of dataTable.hashes()) {
+                this.game.emit('playerAllocatedExtraLives', { 'player': player.name, 'lives': player.lives });
+            }
+        }
+
         // Clear the events so that we only collect events from our test.
         this.setupEvents = this.game.collectEvents();
         this.game.clearEvents();
@@ -152,6 +184,17 @@ Given('{word} is ready', function (player) {
 When('{word} wants to start the game', function (player) {
     try {
         this.game.doPlayerAction(player, 'STARTGAME');
+    } catch (e) { }
+});
+
+When('{word} wants to start the game with options:', function (player, dataTable) {
+    const options = {};
+    for (var opt of dataTable.hashes()) {
+        options[opt.option] = {'value': opt.value};
+    }
+
+    try {
+        this.game.doPlayerAction(player, 'STARTGAME', {options: options});
     } catch (e) { }
 });
 
@@ -216,7 +259,7 @@ Then('debug GameEvents', function () {
     console.dir(this.game.collectEvents(), { depth: null });
 });
 
-Then('debug GameSetupEvents', function (player) {
+Then('debug GameSetupEvents', function () {
     console.dir(this.setupEvents, { depth: null });
 });
 

@@ -150,6 +150,7 @@ export default class ClientSocketHandler {
                     }
 
                     game.doPlayerAction(this.#myGames[gameid].playerID, action, target);
+                    this.#socket.emit('actionSuccess');
                 } catch (e) {
                     this.#socket.emit('actionError', { error: e.message });
                     if (!this.#server.appConfig.silent) {
