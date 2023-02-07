@@ -4,7 +4,6 @@ import GameServer from './src/Server/GameServer.js';
 import Crypto from 'crypto';
 import fs from 'fs';
 import process from 'process';
-import EventEmitter from 'events';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -33,8 +32,6 @@ const $appConfig = {
 if (fs.existsSync(__dirname + '/buildConfig.json')) {
     $appConfig.buildConfig = JSON.parse(fs.readFileSync(__dirname + '/buildConfig.json'));
 }
-
-globalContext.events = new EventEmitter();
 
 console.log('App Config: ', $appConfig);
 
