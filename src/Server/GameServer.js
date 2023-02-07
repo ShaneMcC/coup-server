@@ -13,6 +13,8 @@ import GameOverState from "../Game/GameStates/GameOverState.js";
 
 import sanitize from "sanitize-filename";
 
+import { globalContext } from '../globalContext.js';
+
 export default class GameServer {
     appConfig;
 
@@ -75,12 +77,16 @@ export default class GameServer {
 
     serverTick() {
         // Do Nothing 
+        globalContext.events.emit('server.tick.before');
+        globalContext.events.emit('server.tick.after');
     }
 
     hourly() {
+        globalContext.events.emit('server.hourly.before');
         if (!this.appConfig.silent) {
             console.log(`Hourly Cleanup: ${JSON.stringify(this.cleanup())}`);
         }
+        globalContext.events.emit('server.hourly.after');
     }
 
     #prepareNewGame(gameid) {
@@ -113,16 +119,20 @@ export default class GameServer {
     }
 
     createGame(gameid) {
+        globalContext.events.emit('server.createGame', gameid);
         var [game, gameid] = this.#prepareNewGame(gameid);
 
         game.createGame(gameid);
         this.#addToGamesDict(game);
+
+        globalContext.events.emit('server.gameCreated', game);
 
         return game;
     }
 
     createTestGame(gameID, players) {
         try {
+            globalContext.events.emit('server.createTestGame', gameID, players);
             var testGame = this.createGame(gameID);
 
             for (const player of players) {
@@ -164,6 +174,8 @@ export default class GameServer {
 
     refreshGame(gameID) {
         if (this.#games[gameID]) {
+            globalContext.events.emit('server.refreshGame', gameID);
+
             for (const socket of Object.values(this.#sockets).filter(s => s.type == 'client')) {
                 socket.handler.refreshGame(gameID);
             }
@@ -174,6 +186,8 @@ export default class GameServer {
 
     removeGame(gameID, silent = false) {
         if (this.#games[gameID]) {
+            globalContext.events.emit('server.removeGame.before', gameID);
+
             var game = this.#games[gameID].game;
             delete this.#games[gameID];
             game.unlistenAll();
@@ -183,6 +197,8 @@ export default class GameServer {
                     socket.handler.gameRemoved(gameID);
                 }
             }
+
+            globalContext.events.emit('server.removeGame.after', gameID);
 
             return true;
         }
@@ -205,8 +221,12 @@ export default class GameServer {
         if (gameID == null || gameID == undefined || this.appConfig.saveLocation == undefined) { return false; }
 
         if (fs.existsSync(this.appConfig.saveLocation)) {
+            globalContext.events.emit('server.removeSaveGame.before', gameID);
+
             var gameFile = this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json';
             fs.unlinkSync(gameFile);
+
+            globalContext.events.emit('server.removeSaveGame.after', gameID);
             return true;
         }
 
@@ -220,7 +240,11 @@ export default class GameServer {
             var events = this.#games[gameID].game.collectEvents();
 
             if (fs.existsSync(this.appConfig.saveLocation)) {
+                globalContext.events.emit('server.saveGame.before', gameID);
+                
                 fs.writeFileSync(this.appConfig.saveLocation + '/' + sanitize(gameID) + '.json', JSON.stringify(events, null, 2));
+
+                globalContext.events.emit('server.saveGame.after', gameID);
 
                 return true;
             }
@@ -259,6 +283,7 @@ export default class GameServer {
                             game.hydrate(events);
                             this.#addToGamesDict(game);
 
+                            globalContext.events.emit('server.gameLoaded', game);
                             return true;
                         }
                     } catch (e) {
@@ -323,15 +348,21 @@ export default class GameServer {
     cleanup() {
         const cleanup = {};
 
+        globalContext.events.emit('server.cleanup.before');
+
         cleanup['unused'] = this.cleanupUnused();
         cleanup['finished'] = this.cleanupFinished();
         cleanup['stalled'] = this.cleanupStalled();
+
+        globalCoglobalContext.eventsntext.emit('server.cleanup.after');
 
         return cleanup;
     }
 
     cleanupUnused() {
         const games = [];
+
+        globalContext.events.emit('server.cleanupUnused.before');
 
         for (const [gameID, gameMeta] of Object.entries(this.#games)) {
             if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
@@ -348,11 +379,15 @@ export default class GameServer {
             }
         }
 
+        globalContext.events.emit('server.cleanupUnused.after', games);
+
         return games;
     }
 
     cleanupFinished() {
         const games = [];
+
+        globalContext.events.emit('server.cleanupFinished.before');
 
         for (const [gameID, gameMeta] of Object.entries(this.#games)) {
             if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
@@ -367,11 +402,15 @@ export default class GameServer {
             }
         }
 
+        globalContext.events.emit('server.cleanupFinished.after', games);
+
         return games;
     }
 
     cleanupStalled() {
         const games = [];
+
+        globalContext.events.emit('server.cleanupStalled.before');
 
         for (const [gameID, gameMeta] of Object.entries(this.#games)) {
             if (gameMeta.created > new Date(Date.now() - (3600 * 1000))) { continue; }
@@ -386,6 +425,8 @@ export default class GameServer {
             }
         }
 
+        globalContext.events.emit('server.cleanupStalled.after', games);
+
         return games;
     }
 
@@ -395,6 +436,8 @@ export default class GameServer {
                 console.log(`Server is listening on :${this.appConfig.listenPort}`);
             }
         });
+
+        globalContext.events.emit('server.running');
     }
 }
 

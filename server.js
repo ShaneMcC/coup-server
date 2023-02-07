@@ -4,10 +4,12 @@ import GameServer from './src/Server/GameServer.js';
 import Crypto from 'crypto';
 import fs from 'fs';
 import process from 'process';
+import EventEmitter from 'events';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 import { uniqueNamesGenerator, adjectives as adjectiveList, colors as colourList, animals as animalList } from 'unique-names-generator';
+import { globalContext } from './src/globalContext.js';
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -31,6 +33,8 @@ const $appConfig = {
 if (fs.existsSync(__dirname + '/buildConfig.json')) {
     $appConfig.buildConfig = JSON.parse(fs.readFileSync(__dirname + '/buildConfig.json'));
 }
+
+globalContext.events = new EventEmitter();
 
 console.log('App Config: ', $appConfig);
 
@@ -59,6 +63,7 @@ if ($appConfig.persistGames) {
 }
 
 function exitHandler(code) {
+    globalContext.events.emit('exit', code);
     console.log(`Exiting: ${code}`);
     process.exit(code);
 }
@@ -66,5 +71,9 @@ function exitHandler(code) {
 process.on('SIGQUIT', exitHandler);
 process.on('SIGINT', exitHandler);
 process.on('SIGTERM', exitHandler);
+
+if (fs.existsSync(__dirname + '/local.js')) {
+    await import(__dirname + '/local.js');
+}
 
 gs.run();

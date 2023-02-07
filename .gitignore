@@ -2,6 +2,7 @@
 *.sh
 .env
 gamedata
+local.js
 
 # Logs
 logs
