@@ -306,9 +306,11 @@ export default class GameServer {
         const files = {};
         if (fs.existsSync(this.appConfig.saveLocation)) {
             for (const file of fs.readdirSync(this.appConfig.saveLocation)) {
+                var fullFilename = this.appConfig.saveLocation + '/' + file;
+                var filestat = fs.statSync(fullFilename);
                 var filename = file.replace(/\.json$/, '');
                 // TODO: Perhaps we should check this.
-                files[filename] = { game: filename };
+                files[filename] = { game: filename, created: filestat['birthtime'] };
             }
         }
         return files;
