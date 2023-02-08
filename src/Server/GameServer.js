@@ -354,7 +354,7 @@ export default class GameServer {
         cleanup['finished'] = this.cleanupFinished();
         cleanup['stalled'] = this.cleanupStalled();
 
-        globalCoglobalContext.eventsntext.emit('server.cleanup.after');
+        globalContext.events.emit('server.cleanup.after');
 
         return cleanup;
     }
