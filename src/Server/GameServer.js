@@ -96,7 +96,7 @@ export default class GameServer {
         if (gameid == undefined || gameid == null || gameid.length == 0) {
             do {
                 gameid = uniqueNamesGenerator({ dictionaries: [adjectiveList, colourList, animalList], length: 3, separator: '-', style: 'lowercase' });
-            } while (this.#games[gameid]);
+            } while (this.#games[gameid] || this.savedGameExists(gameid));
         } else {
             if (this.#games[gameid]) {
                 throw new Error('game id already exists');
@@ -119,6 +119,8 @@ export default class GameServer {
     }
 
     createGame(gameid) {
+        if (this.savedGameExists(gameid)) { gameid = undefined; }
+
         globalContext.events.emit('server.createGame', gameid);
         var [game, gameid] = this.#prepareNewGame(gameid);
 
