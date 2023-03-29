@@ -21,7 +21,7 @@
     "unique-names-generator": "^4.7.1"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^9.0.1",
+    "@cucumber/cucumber": "^9.1.0",
     "@cucumber/pretty-formatter": "^1.0.0"
   }
 }
