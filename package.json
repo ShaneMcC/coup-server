@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.1.1",
+    "dotenv": "^16.1.3",
     "express": "^4.18.2",
     "just-clone": "^6.2.0",
     "sanitize-filename": "^1.6.3",
