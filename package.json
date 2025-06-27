@@ -14,7 +14,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.6.0",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "just-clone": "^6.2.0",
     "sanitize-filename": "^1.6.3",
     "socket.io": "^4.8.1",
