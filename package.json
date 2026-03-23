@@ -16,7 +16,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "just-clone": "^6.2.0",
-    "sanitize-filename": "^1.6.3",
+    "sanitize-filename": "^1.6.4",
     "socket.io": "^4.8.3",
     "unique-names-generator": "^4.7.1"
   },
